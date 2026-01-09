@@ -75,7 +75,7 @@ export default function MemberDashboard() {
           <div className="user">
             <img src="https://i.pravatar.cc/100" alt="user" />
             <div>
-              <h1>Welcome back, Arjun Sharma</h1>
+              <h1>Welcome back</h1>
               <p>Ready to crush your goals today?</p>
             </div>
           </div>
