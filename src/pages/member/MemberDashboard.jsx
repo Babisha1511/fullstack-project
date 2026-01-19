@@ -8,6 +8,7 @@ import {
   FaTint,
   FaHeart,
 } from "react-icons/fa";
+import { Link } from "react-router-dom";
 
 const MemberDashboard = () => {
   return (
@@ -19,9 +20,13 @@ const MemberDashboard = () => {
         </h2>
 
         <nav>
-          <a className="active">Dashboard</a>
-          <a>Schedule</a>
-          <a>Nutrition</a>
+          <Link to="/" className="active">Dashboard</Link>
+          <Link to="/schedule">
+        Class Schedule
+      </Link>
+          <Link to="/nutrition">
+        Nutrition
+      </Link>
           <a>Progress</a>
           <a>Settings</a>
         </nav>
@@ -161,6 +166,56 @@ const MemberDashboard = () => {
           </div>
         </section>
       </main>
+      <div className="right-panel">
+  {/* DAILY WORKOUT */}
+  <div className="card workout-routine">
+    <div className="card-header">
+      <h3>✦ Daily Workout Routine</h3>
+      <button className="start-btn">Start Workout</button>
+    </div>
+    <p className="sub-text">Chest & Triceps Day · 45 mins est.</p>
+
+    <div className="routine-item">
+      <span>Bench Press</span>
+      <small>3 sets × 12 reps</small>
+    </div>
+
+    <div className="routine-item">
+      <span>Tricep Dips</span>
+      <small>3 sets × 10 reps</small>
+    </div>
+
+    <div className="routine-item">
+      <span>Pushups</span>
+      <small>Failure</small>
+    </div>
+  </div>
+
+  {/* DIET CHART */}
+  <div className="card diet-chart">
+    <h3>✦ Diet Chart</h3>
+    <p className="sub-text">High Protein Day · 2400 kcal</p>
+
+    <div className="diet-item">
+      <strong>Breakfast · 08:00 AM</strong>
+      <span>Oatmeal & Whey Protein</span>
+      <small>450 kcal</small>
+    </div>
+
+    <div className="diet-item">
+      <strong>Lunch · 01:00 PM</strong>
+      <span>Grilled Chicken Salad</span>
+      <small>650 kcal</small>
+    </div>
+
+    <div className="diet-item">
+      <strong>Dinner · 08:00 PM</strong>
+      <span>Grilled Fish & Quinoa</span>
+      <small>550 kcal</small>
+    </div>
+  </div>
+</div>
+
     </div>
     
   );

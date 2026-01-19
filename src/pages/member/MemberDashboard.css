@@ -9,62 +9,66 @@
 }
 
 body {
-  background: #050505;
   color: #ffffff;
   overflow-x: hidden;
+  background-image: url("https://i.pinimg.com/736x/3a/86/f8/3a86f8391a559d2373cf46135389d6c2.jpg");
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+  min-height: 100vh;
+  position: relative;
+}
+
+/* DARK OVERLAY */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.7);
+  z-index: -1;
 }
 
 /* =========================
-   DASHBOARD SCALE FIX
-   85% VISUAL = 100% FIT
+   DASHBOARD
 ========================= */
 .dashboard {
   display: flex;
   min-height: 100vh;
-
-  /* 🔥 SCALE */
-  transform: scale(0.85);
-  transform-origin: top left;
-
-  /* COMPENSATE SCALE (100 / 0.85 ≈ 118) */
-  width: 118vw;
-  height: 118vh;
-
-  background: #050505;
+  width: 100%;
 }
 
 /* =========================
    SIDEBAR
 ========================= */
 .sidebar {
-  width: 240px;
+  width: 230px;
   background: linear-gradient(180deg, #050505, #0c140c);
-  padding: 32px 22px;
+  padding: 28px 20px;
 }
 
 .logo {
   font-size: 26px;
-  margin-bottom: 42px;
+  margin-bottom: 32px;
 }
 
 .logo span {
-  color: #2dff2d;
+  color: #39ff14;
 }
 
 .sidebar nav a {
   display: block;
   color: #9a9a9a;
-  padding: 14px 18px;
-  margin-bottom: 12px;
-  border-radius: 12px;
-  cursor: pointer;
-  transition: all 0.3s ease;
+  padding: 10px 14px;
+  margin-bottom: 8px;
+  border-radius: 14px;
+  transition: 0.25s ease;
 }
 
 .sidebar nav a:hover,
 .sidebar nav a.active {
-  background: rgba(45, 255, 45, 0.15);
-  color: #2dff2d;
+  background: rgba(57, 255, 20, 0.12);
+  color: #39ff14;
 }
 
 /* =========================
@@ -72,7 +76,7 @@ body {
 ========================= */
 .main {
   flex: 1;
-  padding: 40px 52px;
+  padding: 36px 48px;
 }
 
 /* =========================
@@ -82,11 +86,11 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 38px;
+  margin-bottom: 32px;
 }
 
 .header h1 {
-  font-size: 32px;
+  font-size: 30px;
 }
 
 .header p {
@@ -98,29 +102,28 @@ body {
    BUTTONS
 ========================= */
 .btn-primary {
-  background: #2dff2d;
+  background: #39ff14;
   border: none;
   padding: 14px 26px;
   border-radius: 999px;
   font-weight: 600;
   cursor: pointer;
   color: #000;
-  box-shadow: 0 0 28px rgba(45, 255, 45, 0.55);
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.25);
 }
 
 .btn-primary.large {
   width: 100%;
   padding: 18px;
-  margin-top: 26px;
+  margin-top: 20px;
 }
 
 .btn-outline {
-  margin-top: auto;
   padding: 14px;
   border-radius: 999px;
-  border: 1px solid #2dff2d;
+  border: 1px solid rgba(57, 255, 20, 0.6);
   background: transparent;
-  color: #2dff2d;
+  color: #39ff14;
   cursor: pointer;
 }
 
@@ -129,9 +132,11 @@ body {
 ========================= */
 .card {
   background: linear-gradient(180deg, #0b0b0b, #111);
-  border-radius: 24px;
-  padding: 26px;
-  box-shadow: 0 14px 40px rgba(0, 0, 0, 0.7);
+  border-radius: 22px;
+  padding: 24px;
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.04),
+    0 8px 18px rgba(0, 0, 0, 0.65);
 }
 
 /* =========================
@@ -140,28 +145,28 @@ body {
 .stats {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 28px;
-  margin-bottom: 38px;
+  gap: 24px;
+  margin-bottom: 32px;
 }
 
 .icon {
-  font-size: 26px;
-  margin-bottom: 14px;
+  font-size: 24px;
+  margin-bottom: 12px;
 }
 
-.green { color: #2dff2d; }
+.green { color: #39ff14; }
 .blue { color: #3aa0ff; }
 .yellow { color: #ffd84d; }
 .red { color: #ff4d4d; }
 
 .value {
-  font-size: 26px;
-  margin: 10px 0;
+  font-size: 24px;
+  margin: 8px 0;
 }
 
 .positive {
-  color: #2dff2d;
-  font-size: 15px;
+  color: #39ff14;
+  font-size: 14px;
 }
 
 /* =========================
@@ -170,30 +175,26 @@ body {
 .workout {
   display: grid;
   grid-template-columns: 3fr 2fr;
-  gap: 28px;
-  margin-bottom: 38px;
+  gap: 24px;
+  margin-bottom: 32px;
 }
 
 .workout-card {
   background: radial-gradient(circle at top, #0f1f0f, #050505);
-  border-radius: 28px;
-  padding: 40px;
+  border-radius: 26px;
+  padding: 36px;
 }
 
 .tag {
-  color: #2dff2d;
+  color: #39ff14;
   font-size: 12px;
-  letter-spacing: 1.2px;
-}
-
-.workout-card h2 {
-  margin: 12px 0;
+  letter-spacing: 1px;
 }
 
 .workout-info {
   display: flex;
-  gap: 28px;
-  margin-top: 20px;
+  gap: 24px;
+  margin-top: 18px;
 }
 
 /* =========================
@@ -202,7 +203,7 @@ body {
 .summary {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 16px;
 }
 
 .summary-item {
@@ -212,86 +213,182 @@ body {
 }
 
 /* =========================
-   BOTTOM SECTION
+   RIGHT PANEL
 ========================= */
-.bottom {
-  display: grid;
-  grid-template-columns: 2fr 1fr;
-  gap: 28px;
-  margin-bottom: 48px;
+.right-panel {
+  width: 420px;
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
 }
 
 /* =========================
-   PROGRESS BARS
+   GLASS CARDS (NO GLOW)
 ========================= */
-.progress label {
+.workout-routine,
+.diet-chart {
+  background: linear-gradient(
+    180deg,
+    rgba(18, 18, 18, 0.92),
+    rgba(10, 10, 10, 0.96)
+  );
+  backdrop-filter: blur(10px);
+  border-radius: 28px;
+  padding: 34px;
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.05),
+    0 12px 26px rgba(0, 0, 0, 0.75);
+}
+
+/* =========================
+   CARD HEADER
+========================= */
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.card-header h3 {
+  font-size: 21px;
+}
+
+.card-header .icon {
+  color: #39ff14;
+  font-size: 18px;
+}
+
+/* =========================
+   START BUTTON
+========================= */
+.start-btn {
+  background: linear-gradient(180deg, #39ff14, #28cc12);
+  color: #000;
+  border: none;
+  padding: 14px 26px;
+  border-radius: 999px;
   font-size: 14px;
-  color: #9a9a9a;
-}
-
-.progress-bar {
-  height: 10px;
-  border-radius: 6px;
-  margin: 8px 0 18px;
-  background: #1a1a1a;
-}
-
-.progress-bar.protein {
-  width: 75%;
-  background: #2dff2d;
-}
-
-.progress-bar.carbs {
-  width: 65%;
-  background: #ffd84d;
-}
-
-.progress-bar.fats {
-  width: 55%;
-  background: #3aa0ff;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.25);
 }
 
 /* =========================
-   ACTIVITIES
+   ROUTINE LIST
 ========================= */
-.activities h2 {
-  margin-bottom: 20px;
-}
-
-.activity-list {
+.routine-list {
   display: flex;
   flex-direction: column;
   gap: 16px;
 }
 
-.activity {
-  background: rgba(255, 255, 255, 0.03); /* uniform dark */
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-
-  padding: 22px 28px;
-  border-radius: 18px;
-
-  display: grid;
-  grid-template-columns: 2fr 1fr 1fr;
-  align-items: center;
-
-  color: #eaeaea;
-
-  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.04),
-              0 10px 25px rgba(0,0,0,0.6);
+.routine-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 18px 20px;
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: 16px;
 }
 
+.routine-item:hover {
+  background: rgba(57, 255, 20, 0.08);
+}
 
 /* =========================
-   RESPONSIVE SAFETY
+   RESPONSIVE
 ========================= */
 @media (max-width: 1400px) {
-  .dashboard {
-    transform: scale(0.8);
-    width: 125vw;
-    height: 125vh;
+  .stats {
+    grid-template-columns: repeat(2, 1fr);
   }
-  
-
 }
+/* =========================
+   BOTTOM SECTION FIX
+========================= */
+.bottom {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 24px;
+  margin-bottom: 32px;
+}
+
+.nutrition .progress {
+  margin-top: 16px;
+}
+
+.progress label {
+  font-size: 13px;
+  color: #aaa;
+}
+
+.progress-bar {
+  height: 8px;
+  border-radius: 6px;
+  background: #222;
+  margin-bottom: 12px;
+  overflow: hidden;
+}
+
+.progress-bar::after {
+  content: "";
+  display: block;
+  height: 100%;
+  background: #39ff14;
+  width: 70%;
+}
+
+.progress-bar.carbs::after { width: 60%; }
+.progress-bar.fats::after { width: 50%; }
+
+/* =========================
+   ACTIVITIES
+========================= */
+.activities {
+  margin-bottom: 32px;
+}
+
+.activity-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.activity {
+  background: rgba(255,255,255,0.04);
+  padding: 14px 18px;
+  border-radius: 14px;
+  display: flex;
+  justify-content: space-between;
+  font-size: 14px;
+}
+
+/* =========================
+   RIGHT PANEL FIX
+========================= */
+.right-panel {
+  width: 420px;
+  padding: 36px 32px 36px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+
+/* prevent overlap */
+.dashboard > .main {
+  min-width: 0;
+}
+
+/* =========================
+   RESPONSIVE FIX
+========================= */
+@media (max-width: 1200px) {
+  .right-panel {
+    display: none;
+  }
+
+  .bottom {
+    grid-template-columns: 1fr;
+  }
+}
+
