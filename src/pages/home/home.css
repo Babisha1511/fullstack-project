@@ -1,0 +1,389 @@
+/* ========== GLOBAL STYLES ========== */
+html, body {
+  width: 100%;
+  overflow-x: hidden;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+}
+
+body {
+  background-color: #000;
+  color: #fff;
+}
+
+.home {
+  width: 100%;
+}
+
+/* ========== NAVBAR ========== */
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 60px;
+  background: #000;
+}
+
+.logo {
+  font-size: 1.8rem;
+  font-weight: bold;
+  color: #1eff00;
+}
+
+.nav-links {
+  list-style: none;
+  display: flex;
+  gap: 30px;
+}
+
+.nav-links li {
+  cursor: pointer;
+  opacity: 0.85;
+  transition: color 0.3s ease;
+}
+
+.nav-links li:hover {
+  color: #1eff00;
+}
+
+.nav-actions button {
+  margin-left: 15px;
+}
+
+/* ========== BUTTONS ========== */
+.button-green {
+  background: #1eff00;
+  color: #000;
+  padding: 12px 28px;
+  border-radius: 30px;
+  border: none;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+.button-green:hover {
+  background: #17d900;
+}
+
+.button-outline {
+  background: transparent;
+  color: #fff;
+  border: 2px solid #1eff00;
+  padding: 12px 28px;
+  border-radius: 30px;
+  cursor: pointer;
+}
+
+.login {
+  background: transparent;
+  color: #fff;
+  border: none;
+  cursor: pointer;
+}
+
+/* ========== HERO SECTION ========== */
+.hero {
+  min-height: 90vh;
+  background:
+    linear-gradient(rgba(0,0,0,0.75), rgba(0,0,0,0.75)),
+    url("https://images.pexels.com/photos/841130/pexels-photo-841130.jpeg");
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  padding: 20px;
+}
+
+.hero h1 {
+  font-size: 3.2rem;
+  line-height: 1.3;
+}
+
+.hero span {
+  color: #1eff00;
+}
+
+.hero-text {
+  max-width: 650px;
+  margin: 20px auto;
+  opacity: 0.85;
+}
+
+.hero-buttons {
+  margin-top: 35px;
+  display: flex;
+  gap: 20px;
+}
+
+/* ========== STATS SECTION ========== */
+.stats-section {
+  background: #0b0b0b;
+  padding: 70px 60px;
+  display: flex;
+  justify-content: space-around;
+  text-align: center;
+}
+
+.stat-box h3 {
+  color: #1eff00;
+  font-size: 2rem;
+}
+
+.stat-box p {
+  opacity: 0.8;
+  margin-top: 8px;
+}
+
+/* ========== FEATURES ========== */
+.features {
+  padding: 90px 60px;
+  text-align: center;
+}
+
+.features h2 {
+  font-size: 2.4rem;
+  margin-bottom: 40px;
+}
+
+.feature-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  gap: 30px;
+}
+
+.card {
+  background: #111;
+  padding: 35px 25px;
+  border-radius: 18px;
+  transition: transform 0.3s ease;
+}
+
+.card:hover {
+  transform: translateY(-10px);
+}
+
+.card h3 {
+  color: #1eff00;
+  margin-bottom: 12px;
+}
+
+.card p {
+  opacity: 0.85;
+}
+
+/* ========== PROGRAMS SECTION ========== */
+/* Programs Section */
+.programs {
+  padding: 90px 60px;
+  background: #0b0b0b;
+  text-align: center;
+}
+
+/* Header */
+.programs-header h2 {
+  font-size: 2.4rem;
+  font-weight: bold;
+  color: #fcfafa;
+}
+
+.programs-header span {
+  color: #1eff00;
+}
+
+.programs-header p {
+  max-width: 650px;
+  margin: 15px auto 50px;
+  color: #9b9898;
+}
+
+/* Grid */
+.programs-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  gap: 30px;
+}
+
+/* Card */
+.program-card {
+  background: #f7f5f5;
+  color: #fff;               /* ✅ FIXED TEXT VISIBILITY */
+  padding: 35px 25px;
+  border-radius: 18px;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+/* Hover effect (safe, no overflow) */
+.program-card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 12px 25px rgba(0, 0, 0, 0.3);
+}
+
+/* Card content */
+.program-card h3 {
+  color: #1eff00;
+  margin-bottom: 15px;
+  font-size: 1.3rem;
+}
+
+.program-card p {
+  color: #0c0c0c;
+  line-height: 1.6;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .programs {
+    padding: 60px 20px;
+  }
+}
+
+/* ========== TRAINERS SECTION ========== */
+.trainers {
+  padding: 90px 60px;
+  background: #f7f6f6;
+  color: #222;
+}
+
+.trainers-header {
+  text-align: center;
+  margin-bottom: 60px;
+}
+
+.trainers-header h2 {
+  font-size: 2.4rem;
+  font-weight: bold;
+}
+
+.trainers-header span {
+  color: #1eff00;
+}
+
+.trainers-header p {
+  max-width: 650px;
+  margin: 15px auto;
+  color: #555;
+}
+
+.trainers-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 40px;
+}
+
+.trainer-card {
+  background: #fff;
+  border-radius: 12px;
+  overflow: hidden;
+  text-align: center;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+  transition: transform 0.3s ease;
+}
+
+.trainer-card:hover {
+  transform: translateY(-10px);
+}
+
+.trainer-card img {
+  width: 100%;
+  height: 260px;
+  object-fit: cover;
+}
+
+.trainer-card h3 {
+  margin-top: 20px;
+  font-size: 1.3rem;
+}
+
+.trainer-card p {
+  padding: 10px 20px 25px;
+  color: #666;
+}
+
+/* ========== CTA SECTION ========== */
+.cta {
+  padding: 90px 20px;
+  text-align: center;
+  background: #0f0f0f;
+}
+
+.cta h2 {
+  font-size: 2.3rem;
+}
+
+.cta p {
+  opacity: 0.85;
+  margin: 15px 0 30px;
+}
+
+/* ========== FOOTER ========== */
+.footer {
+  background: #000;
+  padding: 30px;
+  text-align: center;
+  opacity: 0.6;
+  font-size: 0.9rem;
+}
+
+/* ========== TABLET & MOBILE ========== */
+@media (max-width: 768px) {
+
+  .navbar {
+    flex-direction: column;
+    gap: 15px;
+  }
+
+  .stats-section {
+    flex-direction: column;
+    gap: 30px;
+  }
+
+  .hero h1 {
+    font-size: 2.4rem;
+  }
+
+  .hero-buttons {
+    flex-direction: column;
+  }
+}
+
+/* ========== DESKTOP VIEW (1024px+) ========== */
+@media (min-width: 1024px) {
+
+  .navbar {
+    padding: 25px 120px;
+  }
+
+  .hero h1 {
+    font-size: 4rem;
+    max-width: 900px;
+  }
+
+  .features,
+  .programs,
+  .trainers {
+    padding: 110px 120px;
+  }
+
+  .feature-cards,
+  .programs-grid,
+  .trainers-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+
+  .cta h2 {
+    font-size: 2.7rem;
+  }
+}
+
+
