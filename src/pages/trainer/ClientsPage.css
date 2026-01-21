@@ -1,0 +1,377 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: "Segoe UI", sans-serif;
+}
+
+body {
+  background: #0b0b0b;
+  color: #fff;
+}
+
+.trainer-layout {
+  display: flex;
+  min-height: 100vh;
+  width: 100%;
+  overflow: hidden;
+}
+
+/* Sidebar */
+.sidebar {
+  width: 260px;
+  min-width: 260px;
+  background: linear-gradient(180deg, #050505, #0e160a);
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.profile {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.profile .name {
+  font-weight: 600;
+}
+
+.profile .role {
+  font-size: 0.85rem;
+  color: gray;
+}
+
+.menu .menu-item,
+.bottom-menu .menu-item {
+  padding: 10px 0;
+  cursor: pointer;
+  color: #bbb;
+}
+
+.menu-item.active {
+  color: #fff;
+  font-weight: 600;
+}
+
+/* Main */
+.clients-main {
+  flex: 1;
+  padding: 24px 32px;
+  overflow-y: auto;
+  max-width: calc(100vw - 260px);
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+  flex-wrap: wrap;
+  margin-bottom: 30px;
+}
+
+.search {
+  display: flex;
+  align-items: center;
+  background: #1a1a1a;
+  padding: 6px 10px;
+  border-radius: 6px;
+}
+
+.search input {
+  background: transparent;
+  border: none;
+  color: #fff;
+  margin-left: 8px;
+  outline: none;
+}
+
+
+
+/* ===== RADIAL CARD ===== */
+.radial-card {
+  position: relative;
+  background: linear-gradient(145deg, #141414, #0d0d0d);
+  border-radius: 18px;
+  padding: 24px;
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  box-shadow: 0 0 40px rgba(0,0,0,0.6);
+}
+
+.radial-chart {
+  width: 120px;
+  height: 120px;
+}
+
+.radial-chart circle {
+  fill: none;
+  stroke-width: 10;
+  stroke-linecap: round;
+  transform: rotate(-90deg);
+  transform-origin: center;
+}
+
+.radial-chart .bg {
+  stroke: #222;
+}
+
+.radial-chart .active {
+  stroke: #22c55e;
+  stroke-dasharray: 314;
+  stroke-dashoffset: 120;
+}
+
+.radial-chart .paused {
+  stroke: #f59e0b;
+  stroke-dasharray: 314;
+  stroke-dashoffset: 190;
+}
+
+.radial-chart .inactive {
+  stroke: #f61714;
+  stroke-dasharray: 314;
+  stroke-dashoffset: 240;
+}
+
+.radial-center {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+
+.radial-center h2 {
+  font-size: 28px;
+}
+
+.radial-center span {
+  font-size: 12px;
+  color: #f5f6f8;
+}
+
+.radial-legend p {
+  font-size: 14px;
+  margin-bottom: 6px;
+}
+
+.dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  margin-right: 6px;
+}
+
+.green { background: #22c55e; }
+.orange { background: #f0a015; }
+.red { background: #fc2511; }
+
+
+
+
+.graph-card h3 {
+  margin-bottom: 12px;
+}
+
+.line-graph {
+  width: 100%;
+  height: 120px;
+}
+
+.line-graph polyline {
+  stroke: white;
+  stroke-width: 3;
+  filter: drop-shadow(0 0 6px rgba(255,255,255,0.6));
+}
+
+.line-graph circle {
+  fill: white;
+  filter: drop-shadow(0 0 6px rgba(255,255,255,0.8));
+}
+
+.months {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 8px;
+  font-size: 12px;
+  color: #9ca3af;
+}
+
+
+/* Table */
+.clients-table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+}
+
+.clients-table th,
+.clients-table td {
+  padding: 12px 8px;
+  text-align: left;
+}
+
+.clients-table th {
+  color: gray;
+  font-weight: 500;
+}
+
+.client-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.client-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #1eff00;
+}
+
+.client-email {
+  font-size: 0.85rem;
+  color: gray;
+}
+
+.status {
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.status.active { background: #1ce923; }
+.status.paused { background: #f3a310; }
+.status.inactive { background: #ae0707; }
+
+
+/* ===== VIEW BUTTON ===== */
+.view-btn {
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  color: #ffffff;
+  padding: 6px 14px;
+  border-radius: 8px;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+
+.view-btn:hover {
+  background: #33eb30;
+  color: #000000;
+  transform: translateX(2px);
+}
+
+.graph-card {
+  background:
+    url("https://www.transparenttextures.com/patterns/black-linen.png"),
+    linear-gradient(135deg, #0f172a, #020617);
+  border-radius: 18px;
+  padding: 24px;
+  box-shadow: 0 0 40px rgba(0,0,0,0.6);
+}
+
+/* ===== RETENTION CARD ===== */
+.retention-card {
+  background:
+    radial-gradient(circle at top left, rgba(34,197,94,0.15), transparent 45%),
+    linear-gradient(145deg, #141414, #0d0d0d);
+  border-radius: 18px;
+  padding: 24px;
+  box-shadow: 0 0 40px rgba(0,0,0,0.6);
+}
+
+.retention-card h3 {
+  margin-bottom: 16px;
+}
+
+.retention-value {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.retention-value .percent {
+  font-size: 34px;
+  font-weight: 700;
+  color: #22c55e;
+}
+
+.retention-value .label {
+  font-size: 14px;
+  color: #9ca3af;
+}
+
+/* Progress Bar */
+.retention-bar {
+  display: flex;
+  height: 10px;
+  border-radius: 10px;
+  overflow: hidden;
+  background: #222;
+  margin-bottom: 14px;
+}
+
+.retained {
+  width: 86%;
+  background: linear-gradient(90deg, #22c55e, #4ade80);
+}
+
+.churned {
+  width: 14%;
+  background: #ef4444;
+}
+
+/* Info */
+.retention-info {
+  display: flex;
+  gap: 20px;
+  font-size: 14px;
+  margin-bottom: 12px;
+}
+
+.dot.red {
+  background: #ef4444;
+}
+
+.retention-note {
+  font-size: 13px;
+  color: #9ca3af;
+}
+/* ===== THREE CARDS ROW ===== */
+.stats-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+  margin-bottom: 32px;
+}
+
+/* Make all cards equal height */
+.stats-row > div {
+  min-height: 220px;
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 1200px) {
+  .stats-row {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .stats-row {
+    grid-template-columns: 1fr;
+  }
+}
