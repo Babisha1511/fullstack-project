@@ -1,0 +1,104 @@
+/* ================= GLOBAL RESET ================= */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: "Poppins", sans-serif;
+}
+
+/* ================= LOGIN CONTAINER ================= */
+.login-container {
+  width: 100vw;
+  height: 100vh;
+  background: #0b0b0b;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* ================= LOGIN BOX ================= */
+.login-box {
+  width: 420px;
+  background: #121212;
+  padding: 40px;
+  border-radius: 16px;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.7);
+  text-align: center;
+  animation: fadeUp 0.8s ease;
+}
+
+/* ================= HEADING ================= */
+.login-box h1 {
+  color: #1eff00;
+  font-size: 2.2rem;
+  margin-bottom: 8px;
+}
+
+.login-box p {
+  color: #aaa;
+  font-size: 0.95rem;
+  margin-bottom: 30px;
+}
+
+/* ================= INPUTS ================= */
+.login-box input {
+  width: 100%;
+  padding: 14px 16px;
+  margin-bottom: 18px;
+  border-radius: 10px;
+  border: 1px solid #222;
+  background: #0f0f0f;
+  color: #fff;
+  font-size: 0.95rem;
+  transition: border 0.3s ease, box-shadow 0.3s ease;
+}
+
+.login-box input::placeholder {
+  color: #666;
+}
+
+.login-box input:focus {
+  outline: none;
+  border-color: #1eff00;
+  box-shadow: 0 0 10px rgba(30, 255, 0, 0.3);
+}
+
+/* ================= LOGIN BUTTON ================= */
+.login-box button {
+  width: 100%;
+  padding: 14px;
+  margin-top: 10px;
+  background: #1eff00;
+  color: #000;
+  font-size: 1rem;
+  font-weight: 600;
+  border: none;
+  border-radius: 30px;
+  cursor: pointer;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.login-box button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 25px rgba(30, 255, 0, 0.5);
+}
+
+/* ================= ANIMATION ================= */
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(40px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ================= RESPONSIVE ================= */
+@media (max-width: 768px) {
+  .login-box {
+    width: 90%;
+    padding: 30px;
+  }
+}

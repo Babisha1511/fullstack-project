@@ -1,7 +1,8 @@
-import Home from "./pages/home/home";
+
+import TrainerDashboard from "./pages/trainer/TrainerDashboard";
 
 function App() {
-  return <Home />;
+  return <TrainerDashboard />;
 }
 
 export default App;
