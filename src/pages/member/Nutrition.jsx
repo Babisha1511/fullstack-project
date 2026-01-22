@@ -1,158 +1,170 @@
+import "./NutritionPage.css";
 import { Link } from "react-router-dom";
-import "./Nutrition.css";
 
-export default function Nutrition() {
+export default function NutritionPage() {
   return (
-    <div className="dashboard">
-      {/* SIDEBAR */}
+    <div className="trainer-layout">
+      {/* Sidebar */}
       <aside className="sidebar">
-        <h2 className="logo">
-          FitTrack <span>Pro</span>
-        </h2>
+        <h2 className="brand">FitTrack <span>Pro</span></h2>
+
+        <div className="trainer-profile">
+          <img
+            src="https://i.pravatar.cc/100?img=12"
+            alt="Trainer"
+          />
+          <p>Vikram Malhotra</p>
+        </div>
 
         <nav>
-          <Link to="/">Dashboard</Link>
-          <Link to="/schedule">Class Schedule</Link>
-          <Link to="/nutrition" className="active">
-            Nutrition
-          </Link>
-          <Link to="/progress">Progress</Link>
-          <Link to="/settings">Settings</Link>
+          <Link>Dashboard</Link>
+          <Link>Clients</Link>
+          <Link>Workout Plans</Link>
+          <Link className="active">Nutrition</Link>
+          <Link>Schedule</Link>
         </nav>
       </aside>
 
-      {/* MAIN */}
-      <main className="nutrition-main">
-        {/* HEADER */}
-        <header className="nutrition-header">
-          <div className="user-info">
-            <img
-              src="https://i.pravatar.cc/120?img=12"
-              alt="user"
-            />
-            <div>
-              <h1>Marcus Aurelius</h1>
-              <div className="tags">
-                <span>Goal: Hypertrophy</span>
-                <span>Status: Cutting Phase</span>
-                <span>Member since 2022</span>
-              </div>
-            </div>
-          </div>
+      {/* Main Content */}
+      <main className="nutrition-content">
+        {/* Header */}
+        <div className="nutrition-header">
+          <Link className="back-link">← Back to Dashboard</Link>
 
-          <div className="actions">
-            <button className="btn-primary">+ Add Meal</button>
-            <button className="btn-outline">Targets</button>
-          </div>
-        </header>
-
-        {/* MACROS */}
-        <section className="macro-grid">
-          <div className="macro-card">
-            <p>Daily Calories</p>
-            <h2>2,100 / 2,400</h2>
-            <small>300 kcal remaining</small>
-          </div>
-
-          <div className="macro-card">
-            <p>Protein</p>
-            <h2>180g / 200g</h2>
-            <div className="bar">
-              <span style={{ width: "90%" }} />
-            </div>
-          </div>
-
-          <div className="macro-card">
-            <p>Carbs</p>
-            <h2>200g / 250g</h2>
-            <div className="bar">
-              <span style={{ width: "80%" }} />
-            </div>
-          </div>
-
-          <div className="macro-card">
-            <p>Fats</p>
-            <h2>65g / 70g</h2>
-            <div className="bar">
-              <span style={{ width: "92%" }} />
-            </div>
-          </div>
-        </section>
-
-        {/* CONTENT */}
-        <section className="nutrition-content">
-          <div className="weekly card">
-            <h3>Weekly Adherence</h3>
-            <div className="days">
-              <span>M</span><span>T</span><span>W</span>
-              <span>T</span><span>F</span><span>S</span><span>S</span>
-            </div>
-          </div>
-
-          <div className="notes card">
-            <h3>Trainer Notes</h3>
-
-            <div className="note">
-              💧
+          <div className="header-row">
+            <div className="client-info">
+              <img src="https://i.pravatar.cc/100?img=32" alt="Client" />
               <div>
-                <strong>Hydration</strong>
-                <p>Increase water intake to 4L daily.</p>
+                <h1>Nutrition Management</h1>
+                <p>Client: Aisha Sharma</p>
               </div>
             </div>
 
-            <div className="note">
-              💊
-              <div>
-                <strong>Supplements</strong>
-                <p>Creatine post-workout with carbs.</p>
+            <div className="header-actions">
+              <div className="daily-target">
+                DAILY TARGET
+                <strong>1,850 kcal</strong>
               </div>
-            </div>
-
-            <div className="note">
-              🥦
-              <div>
-                <strong>Veggies</strong>
-                <p>High fiber veggies at dinner.</p>
-              </div>
+              <button className="save-btn">Save Plan</button>
             </div>
           </div>
-        </section>
+        </div>
 
-        {/* MEAL LOG */}
-        <section className="meal-log card">
-          <h3>Today's Meal Log</h3>
+        <div className="nutrition-layout">
+          {/* Meal Plan */}
+          <section className="meal-plan">
+            {/* Breakfast */}
+            <div className="meal-card">
+              <div className="meal-header">
+                <h3>Breakfast</h3>
+                <span>08:00 AM · 420 kcal</span>
+              </div>
 
-          <table>
-            <thead>
-              <tr>
-                <th>Time</th>
-                <th>Meal</th>
-                <th>Calories</th>
-                <th>Protein</th>
-                <th>Carbs</th>
-                <th>Fats</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td>08:00 AM</td>
-                <td>Oatmeal & Whey</td>
-                <td>450 kcal</td>
-                <td>35g</td>
-                <td>55g</td>
-                <td>8g</td>
-              </tr>
-              <tr>
-                <td>01:30 PM</td>
-                <td>Chicken & Rice</td>
-                <td>600 kcal</td>
-                <td>55g</td>
-                <td>65g</td>
-                <td>12g</td>
-              </tr>
-            </tbody>
-          </table>
-        </section>
+              <div className="meal-item">
+                <img src="https://img.icons8.com/color/48/oatmeal.png" />
+                <div>
+                  <h4>Oatmeal with Blueberries</h4>
+                  <p>1 bowl (250g)</p>
+                </div>
+              </div>
+
+              <button className="add-item">+ Add Item</button>
+            </div>
+
+            {/* Lunch */}
+            <div className="meal-card">
+              <div className="meal-header">
+                <h3>Lunch</h3>
+                <span>01:30 PM · 650 kcal</span>
+              </div>
+
+              <div className="meal-item">
+                <img src="https://img.icons8.com/color/48/chicken.png" />
+                <div>
+                  <h4>Grilled Chicken Breast</h4>
+                  <p>200g</p>
+                </div>
+              </div>
+
+              <div className="meal-item">
+                <img src="https://img.icons8.com/color/48/rice-bowl.png" />
+                <div>
+                  <h4>Brown Rice</h4>
+                  <p>150g</p>
+                </div>
+              </div>
+
+              <button className="add-item">+ Add Item</button>
+            </div>
+
+            {/* Snacks */}
+            <div className="meal-card">
+              <div className="meal-header">
+                <h3>Snacks</h3>
+                <span>05:00 PM · 210 kcal</span>
+              </div>
+
+              <div className="meal-item">
+                <img src="https://img.icons8.com/color/48/apple.png" />
+                <div>
+                  <h4>Apple Slices</h4>
+                  <p>1 medium</p>
+                </div>
+              </div>
+
+              <button className="add-item">+ Add Item</button>
+            </div>
+
+            {/* Dinner */}
+            <div className="meal-card">
+              <div className="meal-header">
+                <h3>Dinner</h3>
+                <span>08:30 PM · 510 kcal</span>
+              </div>
+
+              <div className="meal-item">
+                <img src="https://img.icons8.com/color/48/salmon.png" />
+                <div>
+                  <h4>Salmon Fillet</h4>
+                  <p>100g</p>
+                </div>
+              </div>
+
+              <button className="add-item">+ Add Item</button>
+            </div>
+          </section>
+
+          {/* Food Database */}
+          <aside className="food-db">
+            <h3>Food Database</h3>
+
+            <div className="food-item">
+              <img src="https://img.icons8.com/color/48/yogurt.png" />
+              <div>
+                <h4>Greek Yogurt (Non-fat)</h4>
+                <p>59 CAL · 10G PROT · 4G CARB · 0G FAT</p>
+              </div>
+            </div>
+
+            <div className="food-item">
+              <img src="https://img.icons8.com/color/48/avocado.png" />
+              <div>
+                <h4>Avocado</h4>
+                <p>160 CAL · 2G PROT · 9G CARB · 15G FAT</p>
+              </div>
+            </div>
+
+            <div className="food-item">
+              <img src="https://img.icons8.com/color/48/quinoa.png" />
+              <div>
+                <h4>Quinoa (Cooked)</h4>
+                <p>120 CAL · 4G PROT · 21G CARB · 2G FAT</p>
+              </div>
+            </div>
+
+            <button className="load-more">Load More Items</button>
+          </aside>
+        </div>
       </main>
     </div>
   );
