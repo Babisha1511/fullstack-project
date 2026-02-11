@@ -1,252 +1,325 @@
-import "./TrainerDashboard.css";
-import { NavLink } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import Calendar from "react-calendar";
+import "react-calendar/dist/Calendar.css";
 
 export default function TrainerDashboard() {
+  const [showCalendar, setShowCalendar] = useState(false);
+  const [trainerName, setTrainerName] = useState("Trainer");
+  const navigate = useNavigate();
+
+  /* ===== READ + NORMALIZE EMAIL AFTER LOGIN ===== */
+  useEffect(() => {
+    let email = localStorage.getItem("userEmail");
+
+    if (email) {
+      // take part before @
+      const baseName = email.split("@")[0].trim().toLowerCase();
+
+      // force @member.com
+      const normalizedEmail = `${baseName}@member.com`;
+
+      // save back
+      localStorage.setItem("userEmail", normalizedEmail);
+
+      // set trainer display name
+      const name =
+        baseName.charAt(0).toUpperCase() + baseName.slice(1);
+
+      setTrainerName(name);
+    }
+  }, []);
+
+  /* ===== MOCK TRAINER SCHEDULE ===== */
+  const trainerSchedule = {
+    "2026-01-30": 5,
+    "2026-01-31": 3,
+    "2026-02-03": 2,
+  };
+
   return (
-    <div className="trainer-layout">
-      {/* Sidebar */}
-      <aside className="sidebar">
-        {/* Brand */}
-        <div className="brand">
-          <h2>
-            FitTrack <span>Pro</span>
-          </h2>
-        </div>
+    <div
+      className="min-h-screen bg-cover bg-center bg-no-repeat bg-fixed"
+      style={{
+        backgroundImage:
+          "url('https://i.pinimg.com/1200x/a7/55/0e/a7550e08439c5a9443ab3f7db6c6fab7.jpg')",
+      }}
+    >
+      {/* DARK OVERLAY */}
+      <div className="min-h-screen bg-black/80 p-8 text-white">
 
-        {/* Trainer Profile */}
-        <div className="trainer-profile">
-          <img
-            src="https://previews.123rf.com/images/jalephoto/jalephoto1801/jalephoto180100358/93955675-handsome-personal-trainer-with-stopwatch-in-a-fitness-center-gym-standing-strong.jpg"
-            alt="Trainer"
-            className="trainer-img"
-          />
-          <p className="trainer-name">Vikram Malhotra</p>
-        </div>
-
-        {/* Navigation */}
-        <nav>
-          <NavLink to="/" className={({ isActive }) => (isActive ? "active" : "")}>
-            Dashboard
-          </NavLink>
-          <NavLink to="/clients" className={({ isActive }) => (isActive ? "active" : "")}>
-            Clients
-          </NavLink>
-          <NavLink to="/workout" className={({ isActive }) => (isActive ? "active" : "")}>
-            Workout Plans
-          </NavLink>
-          <NavLink to="/nutrition" className={({ isActive }) => (isActive ? "active" : "")}>
-            Nutrition
-          </NavLink>
-          <NavLink to="/schedule" className={({ isActive }) => (isActive ? "active" : "")}>
-            Schedule
-          </NavLink>
-        </nav>
-
-        {/* Sidebar Bottom */}
-        <div className="sidebar-bottom">
-          <NavLink to="/settings">Settings</NavLink>
-          <a className="logout">Log Out</a>
-        </div>
-      </aside>
-
-      {/* Main Content */}
-      <main className="main-content">
-        {/* Header */}
-        <div className="header">
+        {/* ================= HEADER ================= */}
+        <div className="flex items-center justify-between mb-10">
           <div>
-            <h1>Hello, Vikram</h1>
-            <p>
-              You have <b>5 sessions</b> scheduled for today.
+            <h1 className="text-4xl font-bold">
+              Hello, <span className="text-[#39ff14]">{trainerName}</span>
+            </h1>
+            <p className="text-gray-400 mt-1">
+              You have{" "}
+              <span className="text-[#39ff14] font-semibold">5 sessions</span>{" "}
+              scheduled for today
             </p>
           </div>
-          <button className="calendar-btn">📅 View Calendar</button>
+
+          <button
+            onClick={() => setShowCalendar(true)}
+            className="px-6 py-2 rounded-xl bg-[#39ff14] text-black font-semibold
+                       shadow-[0_0_20px_rgba(57,255,20,0.5)]
+                       hover:scale-105 transition"
+          >
+            📅 View Calendar
+          </button>
         </div>
 
-        {/* Stats */}
-        <div className="stats">
-          <div className="card">
-            <p>Active Clients</p>
-            <h2>24</h2>
-            <span>+2 this week</span>
-          </div>
-          <div className="card">
-            <p>Sessions Today</p>
-            <h2>5 / 8</h2>
-          </div>
-          <div className="card">
-            <p>Plans Pending</p>
-            <h2>3</h2>
-          </div>
-          <div className="card">
-            <p>Avg Rating</p>
-            <h2>4.9 ⭐</h2>
-          </div>
+        {/* ================= STATS ================= */}
+        <div className="grid md:grid-cols-4 gap-6 mb-12">
+          <Stat title="Active Clients" value="24" sub="+2 this week" />
+          <Stat title="Sessions Today" value="5 / 8" />
+          <Stat title="Plans Pending" value="3" />
+          <Stat title="Avg Rating" value="4.9" />
         </div>
 
-        {/* Training Categories */}
-        <h3 className="section-title">Training Categories</h3>
-        <div className="categories">
-          <div className="cat-card">
-            <span className="cat-title">🧘 Yoga & Pranayama</span>
-            <p className="cat-desc">
-              Improve flexibility, breathing control, and mental relaxation.
-            </p>
+        {/* ================= TRAINING CATEGORIES ================= */}
+        <Section title="Training Categories">
+          <div className="grid md:grid-cols-5 gap-4">
+            {[
+              "Yoga & Pranayama",
+              "Strength & Conditioning",
+              "Functional Training",
+              "Weight Loss Challenges",
+              "Muscle Building",
+            ].map((item) => (
+              <div
+                key={item}
+                className="bg-black/60 backdrop-blur-lg border border-white/10
+                           rounded-2xl p-5 text-center
+                           hover:border-[#39ff14]/40 transition"
+              >
+                <div className="text-2xl mb-2 text-[#39ff14]">⬢</div>
+                <p className="text-sm">{item}</p>
+              </div>
+            ))}
           </div>
-          <div className="cat-card">
-            <span className="cat-title">🏋 Strength & Conditioning</span>
-            <p className="cat-desc">
-              Build strength, endurance, and overall physical performance.
-            </p>
+        </Section>
+
+        {/* ================= QUICK ACTIONS ================= */}
+        <Section title="Quick Actions">
+          <div className="grid md:grid-cols-4 gap-6">
+
+            <QuickCard
+              title="Create / Edit Workout Plans"
+              desc="Assign new routines"
+              img="https://i.pinimg.com/1200x/53/df/ea/53dfea1907d8b49b4f84eb20d8baa1dd.jpg"
+              onClick={() => navigate("/trainer/workout")}
+            />
+
+            <QuickCard
+              title="Create / Edit Nutrition Plans"
+              desc="Update diet charts"
+              img="https://images.unsplash.com/photo-1490645935967-10de6ba17061"
+              onClick={() => navigate("/trainer/nutrition")}
+            />
+
+            <QuickCard
+              title="Manage Availability"
+              desc="Set your hours"
+              img="https://images.unsplash.com/photo-1517248135467-4c7edcad34c4"
+              onClick={() => navigate("/trainer/schedule")}
+            />
+
+            <QuickCard
+              title="Log Client Progress"
+              desc="Record progress notes"
+              img="https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b"
+              onClick={() => navigate("/trainer/clients")}
+            />
+
           </div>
-          <div className="cat-card">
-            <span className="cat-title">🤸 Functional Training</span>
-            <p className="cat-desc">
-              Enhance mobility, balance, and real-life movement efficiency.
-            </p>
+        </Section>
+
+        {/* ================= ASSIGNED CLIENTS ================= */}
+        <Section title="Assigned Clients" right="View All">
+          <div className="bg-black/70 backdrop-blur-lg border border-white/10 rounded-2xl overflow-hidden">
+            <table className="w-full text-sm">
+              <thead className="bg-white/5 text-gray-400">
+                <tr>
+                  <th className="text-left px-6 py-3">Client Name</th>
+                  <th>Current Goal</th>
+                  <th>Progress</th>
+                  <th>Status</th>
+                  <th className="text-right px-6">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <ClientRow
+                  name="Aisha Sharma"
+                  goal="Weight Loss"
+                  progress={85}
+                  status="Active"
+                />
+                <ClientRow
+                  name="Kabir Khan"
+                  goal="Muscle Building"
+                  progress={60}
+                  status="Active"
+                />
+                <ClientRow
+                  name="Diya Verma"
+                  goal="Yoga & Pranayama"
+                  progress={45}
+                  status="Paused"
+                />
+              </tbody>
+            </table>
           </div>
-          <div className="cat-card">
-            <span className="cat-title">🔥 Weight Loss</span>
-            <p className="cat-desc">Burn calories effectively with cardio and fat-loss workouts.</p>
-          </div>
-          <div className="cat-card">
-            <span className="cat-title">💪 Muscle Building</span>
-            <p className="cat-desc">Increase muscle mass with structured strength training plans.</p>
+        </Section>
+      </div>
+
+      {/* ================= CALENDAR MODAL ================= */}
+      {showCalendar && (
+        <div className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center">
+          <div className="w-[380px] p-6 rounded-2xl
+                          bg-gradient-to-br from-black to-zinc-900
+                          border border-white/10 shadow-2xl">
+
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-semibold tracking-wide">
+                Trainer Schedule
+              </h2>
+              <button
+                onClick={() => setShowCalendar(false)}
+                className="text-gray-400 hover:text-[#39ff14] text-xl"
+              >
+                ✕
+              </button>
+            </div>
+
+            <Calendar
+              className="bg-transparent text-white rounded-xl overflow-hidden"
+              tileClassName={({ date }) => {
+                const d = date.toISOString().split("T")[0];
+                return trainerSchedule[d]
+                  ? "bg-[#39ff14] text-black rounded-full shadow-[0_0_15px_rgba(57,255,20,0.6)]"
+                  : "hover:bg-white/10 rounded-lg";
+              }}
+              tileContent={({ date }) => {
+                const d = date.toISOString().split("T")[0];
+                return trainerSchedule[d] ? (
+                  <p className="text-[10px] text-center font-semibold">
+                    {trainerSchedule[d]} sessions
+                  </p>
+                ) : null;
+              }}
+            />
+
+            <div className="mt-4 flex items-center gap-2 text-xs text-gray-400">
+              <span className="w-3 h-3 rounded-full bg-[#39ff14]
+                               shadow-[0_0_10px_rgba(57,255,20,0.6)]" />
+              Highlighted dates indicate scheduled sessions
+            </div>
           </div>
         </div>
+      )}
+    </div>
+  );
+}
 
-        {/* Quick Actions */}
-        <h3 className="section-title">Quick Actions</h3>
-        <div className="actions">
-          <div className="action-card workout">
-            <div className="overlay">
-              <h4>Create / Edit Workout Plans</h4>
-              <p>Assign routines to clients</p>
-            </div>
-          </div>
-          <div className="action-card nutrition">
-            <div className="overlay">
-              <h4>Create / Edit Nutrition Plans</h4>
-              <p>Update diet charts</p>
-            </div>
-          </div>
-          <div className="action-card availability">
-            <div className="overlay">
-              <h4>Manage Availability</h4>
-              <p>Set your training hours</p>
-            </div>
-          </div>
-          <div className="action-card progress">
-            <div className="overlay">
-              <h4>Log Client Progress</h4>
-              <p>Track transformation</p>
-            </div>
-          </div>
+/* ================= COMPONENTS ================= */
+
+function Stat({ title, value, sub }) {
+  return (
+    <div className="bg-black/60 backdrop-blur-lg border border-white/10
+                    rounded-2xl p-6 hover:border-[#39ff14]/40 transition">
+      <p className="text-gray-400 text-sm mb-2">{title}</p>
+      <h2 className="text-3xl font-bold text-[#39ff14]">{value}</h2>
+      {sub && <p className="text-xs text-gray-500 mt-1">{sub}</p>}
+    </div>
+  );
+}
+
+function Section({ title, right, children }) {
+  return (
+    <div className="mb-12">
+      <div className="flex items-center justify-between mb-5">
+        <h3 className="text-xl font-semibold tracking-wide">{title}</h3>
+        {right && (
+          <span className="text-sm text-gray-400 hover:text-[#39ff14] cursor-pointer">
+            {right}
+          </span>
+        )}
+      </div>
+      {children}
+    </div>
+  );
+}
+
+function QuickCard({ title, desc, img, onClick }) {
+  return (
+    <div
+      onClick={onClick}
+      className="relative h-36 rounded-2xl overflow-hidden
+                 border border-white/10 hover:border-[#39ff14]/40
+                 hover:scale-[1.02] transition cursor-pointer"
+      style={{ backgroundImage: `url(${img})`, backgroundSize: "cover" }}
+    >
+      <div className="absolute inset-0 bg-black/75" />
+      <div className="relative p-4">
+        <h4 className="font-semibold text-sm">{title}</h4>
+        <p className="text-xs text-gray-400 mt-1">{desc}</p>
+      </div>
+    </div>
+  );
+}
+
+function ClientRow({ name, goal, progress, status }) {
+  return (
+    <tr className="border-t border-white/10 hover:bg-white/5 transition">
+      <td className="px-6 py-4 flex items-center gap-3">
+        <img
+          src={`https://i.pravatar.cc/40?u=${name}`}
+          alt={name}
+          className="rounded-full"
+        />
+        <div>
+          <p className="font-medium">{name}</p>
+          <p className="text-xs text-gray-400">Last session: Recently</p>
         </div>
+      </td>
 
-          {/* Add more clients as you did before */}
-          <h3 className="section-title">Assigned Clients</h3>
+      <td className="text-center">
+        <span className="bg-white/10 px-3 py-1 rounded-full text-xs">
+          {goal}
+        </span>
+      </td>
 
-<div className="clients-table">
-  <div className="clients-header">
-    <span>Client</span>
-    <span>Goal</span>
-    <span>Progress</span>
-    <span>Status</span>
-    <span>Action</span>
-  </div>
+      <td className="text-center">
+        <div className="w-24 mx-auto">
+          <div className="h-1 bg-white/10 rounded-full">
+            <div
+              className="h-1 rounded-full bg-[#39ff14]"
+              style={{ width: `${progress}%` }}
+            />
+          </div>
+          <p className="text-xs text-gray-400 mt-1">{progress}%</p>
+        </div>
+      </td>
 
-  {/* Client 1 */}
-  <div className="client-row">
-    <div className="client-info">
-      <img src="https://randomuser.me/api/portraits/women/44.jpg" className="client-avatar" />
-      <div>
-        <p className="client-name">Aisha Sharma</p>
-        <span className="client-sub">Last session: Yesterday</span>
-      </div>
-    </div>
-    <span className="tag">Weight Loss</span>
-    <div className="progress-box">
-      <div className="progress-bar"><span style={{ width: "85%" }} /></div>
-      <small>85%</small>
-    </div>
-    <span className="status active">Active</span>
-    <button className="view-btn">View</button>
-  </div>
+      <td className="text-center">
+        <span
+          className={`px-3 py-1 rounded-full text-xs ${
+            status === "Active"
+              ? "bg-[#39ff14] text-black"
+              : "bg-white/10 text-gray-400"
+          }`}
+        >
+          {status}
+        </span>
+      </td>
 
-  {/* Client 2 */}
-  <div className="client-row">
-    <div className="client-info">
-      <img src="https://randomuser.me/api/portraits/men/32.jpg" className="client-avatar" />
-      <div>
-        <p className="client-name">Kabir Khan</p>
-        <span className="client-sub">Today 10:00 AM</span>
-      </div>
-    </div>
-    <span className="tag">Muscle Building</span>
-    <div className="progress-box">
-      <div className="progress-bar"><span style={{ width: "60%" }} /></div>
-      <small>60%</small>
-    </div>
-    <span className="status active">Active</span>
-    <button className="view-btn">View</button>
-  </div>
-
-  {/* Client 3 */}
-  <div className="client-row">
-    <div className="client-info">
-      <img src="https://randomuser.me/api/portraits/women/68.jpg" className="client-avatar" />
-      <div>
-        <p className="client-name">Diya Verma</p>
-        <span className="client-sub">2 days ago</span>
-      </div>
-    </div>
-    <span className="tag">Yoga & Pranayama</span>
-    <div className="progress-box">
-      <div className="progress-bar"><span style={{ width: "75%" }} /></div>
-      <small>75%</small>
-    </div>
-    <span className="status active">Active</span>
-    <button className="view-btn">View</button>
-  </div>
-
-  {/* Client 4 */}
-  <div className="client-row">
-    <div className="client-info">
-      <img src="https://randomuser.me/api/portraits/men/45.jpg" className="client-avatar" />
-      <div>
-        <p className="client-name">Rohit Mehta</p>
-        <span className="client-sub">Last session: Today</span>
-      </div>
-    </div>
-    <span className="tag">Strength & Conditioning</span>
-    <div className="progress-box">
-      <div className="progress-bar"><span style={{ width: "70%" }} /></div>
-      <small>70%</small>
-    </div>
-    <span className="status active">Active</span>
-    <button className="view-btn">View</button>
-  </div>
-
-  {/* Client 5 */}
-  <div className="client-row">
-    <div className="client-info">
-      <img src="https://randomuser.me/api/portraits/women/52.jpg" className="client-avatar" />
-      <div>
-        <p className="client-name">Sneha Iyer</p>
-        <span className="client-sub">Last session: 3 days ago</span>
-      </div>
-    </div>
-    <span className="tag">Functional Training</span>
-    <div className="progress-box">
-      <div className="progress-bar"><span style={{ width: "45%" }} /></div>
-      <small>45%</small>
-    </div>
-    <span className="status paused">Paused</span>
-    <button className="view-btn">View</button>
-  </div>
-</div>
-      
-      </main>
-    </div>
+      <td className="px-6 text-right space-x-3">
+        <button className="text-gray-400 hover:text-[#39ff14]">💬</button>
+        <button className="text-gray-400 hover:text-[#39ff14]">👁</button>
+      </td>
+    </tr>
   );
 }
