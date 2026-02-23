@@ -1,50 +1,120 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-
+const ADMIN_EMAIL = "jananybabisha@gmail.com";
 export default function Login() {
+  
+  const [isRegister, setIsRegister] = useState(false);
+
+  const [name, setName] = useState("");
+  const [username, setUsername] = useState("");
+  const [phone, setPhone] = useState("");
+  const [preferences, setPreferences] = useState("");
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+
+  const [message, setMessage] = useState("");
+  const [isError, setIsError] = useState(false);
+  const isAdminEmail = email === ADMIN_EMAIL;
   const navigate = useNavigate();
 
-  const handleLogin = (e) => {
+  // ================= LOGIN =================
+  const handleLogin = async (e) => {
     e.preventDefault();
 
     if (!email || !password) {
-      alert("Please enter credentials");
+      setIsError(true);
+setMessage("Please enter credentials");
       return;
     }
 
-    let role = null;
+    try {
+      const response = await fetch("http://localhost:3456/auth/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          usernameOrEmail: email,
+          password: password
+        })
+      });
 
-    // ================= ROLE DETECTION =================
-    if (email.endsWith("@admin.com")) {
-      role = "admin";
-    } else if (email.endsWith("@trainer.com")) {
-      role = "trainer";
-    } else if (email.endsWith("@member.com")) {
-      role = "member";
-    } else {
-      alert("Invalid email domain");
+      if (!response.ok) {
+        throw new Error("Invalid credentials");
+      }
+
+      const token = await response.text();
+
+      localStorage.setItem("token", token);
+
+      const base64Url = token.split(".")[1];
+      const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
+     const payload = JSON.parse(window.atob(base64));
+
+const role = payload.role.toLowerCase();
+
+localStorage.setItem("role", role);
+localStorage.setItem("userEmail", email);
+
+const extractedName = email.split("@")[0]; // ✅ FIX
+localStorage.setItem("userName", extractedName);
+
+navigate(`/${role}/dashboard`);
+
+    } catch {
+      setIsError(true);
+setMessage("Invalid credentials ❌");
+    }
+  };
+
+  // ================= REGISTER =================
+  const handleRegister = async (e) => {
+    e.preventDefault();
+
+    if (!name || !username || !email || !password) {
+      setIsError(true);
+setMessage("Please fill all required fields");
       return;
     }
 
-    // ================= ⭐ NEW: NAME DERIVE =================
-    const nameFromEmail = email.split("@")[0];
-    const formattedName =
-      nameFromEmail.charAt(0).toUpperCase() +
-      nameFromEmail.slice(1);
+    try {
+      const response = await fetch("http://localhost:3456/auth/register", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          name,
+          username,
+          email,
+          password,
+          phone,
+          preferences
+        })
+      });
 
-    // ================= SAVE DETAILS =================
-    localStorage.setItem("role", role);
-    localStorage.setItem("userEmail", email);
-    localStorage.setItem("userName", formattedName); // ⭐ ADDED
+      const message = await response.text();
 
-    // ================= REDIRECT =================
-    navigate(`/${role}/dashboard`);
+      if (!response.ok) {
+       setIsError(true);
+setMessage(message);
+        return;
+      }
+
+      setIsError(false);
+setMessage("Registered Successfully ✅");
+setIsRegister(false);
+
+    } catch {
+      setIsError(true);
+setMessage("Registration failed ❌");
+    }
   };
 
   return (
     <div className="min-h-screen grid grid-cols-1 md:grid-cols-2 bg-black text-white">
+
       {/* ================= LEFT SECTION ================= */}
       <div
         className="relative hidden md:flex flex-col justify-between p-12 bg-cover bg-center"
@@ -94,59 +164,87 @@ export default function Login() {
       {/* ================= RIGHT SECTION ================= */}
       <div className="flex items-center justify-center px-6">
         <form
-          onSubmit={handleLogin}
+          onSubmit={isRegister ? handleRegister : handleLogin}
           className="w-full max-w-md bg-black/70 backdrop-blur-lg p-10 rounded-2xl border border-white/10"
         >
+
           <h2 className="text-2xl font-bold mb-2">
-            Welcome Back
+            {isRegister ? "Create Account" : "Welcome Back"}
           </h2>
+
           <p className="text-gray-400 text-sm mb-8">
-            Log in to your{" "}
-            <span className="text-[#39ff14]">FitTrack</span> dashboard.
+            {isRegister ? "Register to access FitTrack dashboard." :
+              <>Log in to your <span className="text-[#39ff14]">FitTrack</span> dashboard.</>}
           </p>
+
+          {/* REGISTER FIELDS */}
+          {isRegister && (
+            <>
+              <div className="mb-4">
+                <input
+                  type="text"
+                  placeholder="Full Name"
+                  className="w-full mt-2 bg-[#161616] border border-white/10 px-4 py-3 rounded-lg focus:outline-none focus:border-[#39ff14]"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                />
+              </div>
+
+              <div className="mb-4">
+                <input
+                  type="text"
+                  placeholder="Username"
+                  className="w-full mt-2 bg-[#161616] border border-white/10 px-4 py-3 rounded-lg focus:outline-none focus:border-[#39ff14]"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                />
+              </div>
+
+              <div className="mb-4">
+                <input
+                  type="text"
+                  placeholder="Phone"
+                  className="w-full mt-2 bg-[#161616] border border-white/10 px-4 py-3 rounded-lg focus:outline-none focus:border-[#39ff14]"
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                />
+              </div>
+
+              <div className="mb-4">
+                <input
+                  type="text"
+                  placeholder="Preferences"
+                  className="w-full mt-2 bg-[#161616] border border-white/10 px-4 py-3 rounded-lg focus:outline-none focus:border-[#39ff14]"
+                  value={preferences}
+                  onChange={(e) => setPreferences(e.target.value)}
+                />
+              </div>
+            </>
+          )}
 
           {/* EMAIL */}
           <div className="mb-4">
-            <label className="text-sm text-gray-400">
-              Username or Email
-            </label>
             <input
-              type="email"
-              placeholder="example@member.com"
-              className="w-full mt-2 bg-[#161616] border border-white/10 px-4 py-3 rounded-lg
-                         focus:outline-none focus:border-[#39ff14]"
+              type="text"
+              placeholder="Enter username or email"
+              className="w-full mt-2 bg-[#161616] border border-white/10 px-4 py-3 rounded-lg focus:outline-none focus:border-[#39ff14]"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
             />
           </div>
 
           {/* PASSWORD */}
-          <div className="mb-4">
-            <label className="text-sm text-gray-400">
-              Password
-            </label>
+          <div className="mb-6">
             <input
               type="password"
-              placeholder="Enter your password"
-              className="w-full mt-2 bg-[#161616] border border-white/10 px-4 py-3 rounded-lg
-                         focus:outline-none focus:border-[#39ff14]"
+              placeholder="Enter password"
+              className="w-full mt-2 bg-[#161616] border border-white/10 px-4 py-3 rounded-lg focus:outline-none focus:border-[#39ff14]"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
             />
           </div>
 
-          {/* OPTIONS */}
-          <div className="flex items-center justify-between text-sm text-gray-400 mb-6">
-            <label className="flex items-center gap-2">
-              <input type="checkbox" className="accent-[#39ff14]" />
-              Remember me
-            </label>
-            <span className="hover:text-[#39ff14] cursor-pointer">
-              Forgot password?
-            </span>
-          </div>
-
-          {/* LOGIN BUTTON */}
+          {/* BUTTON */}
           <button
             type="submit"
             className="w-full py-3 rounded-lg font-semibold transition flex items-center justify-center gap-2"
@@ -156,38 +254,35 @@ export default function Login() {
               boxShadow: "0 0 20px rgba(57,255,20,0.4)",
             }}
           >
-            Log In →
+            {isRegister ? "Register →" : "Log In →"}
+            
           </button>
+          {message && (
+  <p
+    className={`mt-4 text-sm text-center ${
+      isError ? "text-red-400" : "text-[#39ff14]"
+    }`}
+  >
+    {message}
+  </p>
+)}
 
-          {/* SIGN UP */}
-          <p className="text-center text-gray-400 text-sm mt-6">
-            New to FitTrack?{" "}
-            <span className="text-[#39ff14] hover:underline cursor-pointer">
-              Create an account
-            </span>
-          </p>
+          {!isAdminEmail && (
+  <p className="text-center text-gray-400 text-sm mt-6">
+    {isRegister ? "Already have an account?" : "New to FitTrack?"}{" "}
+    <span
+      onClick={() => {
+  if (!isAdminEmail) {
+    setIsRegister(!isRegister);
+  }
+}}
+      className="text-[#39ff14] hover:underline cursor-pointer"
+    >
+      {isRegister ? "Back to Login" : "Create an account"}
+    </span>
+  </p>
+)}
 
-          {/* DIVIDER */}
-          <div className="flex items-center my-6 text-gray-500 text-xs">
-            <div className="flex-1 h-px bg-white/10"></div>
-            <span className="px-3 text-[#39ff14]">System Access</span>
-            <div className="flex-1 h-px bg-white/10"></div>
-          </div>
-
-          {/* SUPPORT */}
-          <button
-            type="button"
-            className="w-full border border-white/10 py-3 rounded-lg
-                       hover:border-[#39ff14]/40 hover:text-[#39ff14]
-                       transition flex items-center justify-center gap-2"
-          >
-            🎧 Contact Support
-          </button>
-
-          {/* DEMO INFO */}
-          <p className="text-xs text-gray-500 text-center mt-6">
-            example@admin.com | example@trainer.com | example@member.com
-          </p>
         </form>
       </div>
     </div>

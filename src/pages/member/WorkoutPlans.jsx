@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 
 export default function WorkoutPlans() {
+
   /* ===== GET USER EMAIL ===== */
   const rawEmail = localStorage.getItem("userEmail");
   const userEmail = rawEmail ? rawEmail.trim().toLowerCase() : null;
@@ -9,36 +10,40 @@ export default function WorkoutPlans() {
   const [completed, setCompleted] = useState({});
   const [showSuccess, setShowSuccess] = useState(false);
 
-  /* ===== LOAD WORKOUT PLAN ===== */
+  /* ===== FETCH FROM BACKEND ===== */
   useEffect(() => {
-    const stored =
-      JSON.parse(localStorage.getItem("trainer_workout_plans")) || {};
+    const fetchWorkoutPlan = async () => {
 
-    console.log("🧠 RAW EMAIL:", rawEmail);
-    console.log("🧠 NORMALIZED EMAIL:", userEmail);
-    console.log("📦 ALL STORED PLANS:", stored);
+      if (!userEmail) {
+        setWorkoutPlan(null);
+        return;
+      }
 
-    if (!userEmail) {
-      setWorkoutPlan(null);
-      return;
-    }
+      try {
+        const response = await fetch(
+          `http://localhost:1013/api/workouts/member/${userEmail}`
+        );
 
-    if (stored[userEmail]) {
-      setWorkoutPlan(stored[userEmail]);
-      return;
-    }
+        if (!response.ok) {
+          throw new Error("Failed to fetch workout plan");
+        }
 
-    const fallbackKey = Object.keys(stored).find(
-      (k) => k.trim().toLowerCase() === userEmail
-    );
+        const data = await response.json();
 
-    if (fallbackKey) {
-      setWorkoutPlan(stored[fallbackKey]);
-      return;
-    }
+        if (data.length > 0) {
+          setWorkoutPlan(data[0]);
+        } else {
+          setWorkoutPlan(null);
+        }
 
-    setWorkoutPlan(null);
-  }, []);
+      } catch (error) {
+        console.error("Error fetching workout plan:", error);
+        setWorkoutPlan(null);
+      }
+    };
+
+    fetchWorkoutPlan();
+  }, [userEmail]);
 
   /* ===== TOGGLE EXERCISE ===== */
   const toggleExercise = (name) => {
@@ -74,9 +79,10 @@ export default function WorkoutPlans() {
 
   /* ===== PROGRESS ===== */
   const completedCount = Object.values(completed).filter(Boolean).length;
-  const progress = Math.round(
-    (completedCount / workoutPlan.exercises.length) * 100
-  );
+
+  const progress = workoutPlan.exerciseIds?.length
+    ? Math.round((completedCount / workoutPlan.exerciseIds.length) * 100)
+    : 0;
 
   return (
     <main
@@ -100,9 +106,9 @@ export default function WorkoutPlans() {
 
       {/* ===== SUMMARY ===== */}
       <section className="grid md:grid-cols-4 gap-6 mb-12">
-        <Stat title="Plan Name" value={workoutPlan.planName} />
-        <Stat title="Goal" value={workoutPlan.goal} />
-        <Stat title="Frequency" value={workoutPlan.frequency} />
+        <Stat title="Plan Name" value={workoutPlan.title} />
+        <Stat title="Member" value={workoutPlan.memberId} />
+        <Stat title="Exercises" value={workoutPlan.exerciseIds?.length} />
         <Stat title="Progress" value={`${progress}%`} />
       </section>
 
@@ -113,13 +119,14 @@ export default function WorkoutPlans() {
         </h3>
 
         <div className="space-y-3">
-          {workoutPlan.exercises.map((ex, i) => {
-            const done = completed[ex.name];
+          {workoutPlan.exerciseIds?.map((id, i) => {
+
+            const done = completed[id];
 
             return (
               <div
                 key={i}
-                onClick={() => toggleExercise(ex.name)}
+                onClick={() => toggleExercise(id)}
                 className={`flex items-center justify-between p-4 rounded-xl cursor-pointer transition
                   ${
                     done
@@ -140,9 +147,9 @@ export default function WorkoutPlans() {
                   </span>
 
                   <div>
-                    <p className="font-medium">{ex.name}</p>
+                    <p className="font-medium">{id}</p>
                     <p className="text-xs text-gray-400">
-                      {ex.sets}
+                      Assigned Exercise
                     </p>
                   </div>
                 </div>

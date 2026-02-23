@@ -1,71 +1,70 @@
 import { useState, useEffect } from "react";
-
-const STORAGE_KEY = "gym_trainers";
+import {
+  getTrainers,
+  addTrainer as addTrainerApi,
+  deleteTrainer as deleteTrainerApi
+} from "../../api/trainerApi";
 
 export default function TrainerManagement() {
+
   const [trainers, setTrainers] = useState([]);
   const [showModal, setShowModal] = useState(false);
+  const [successMessage, setSuccessMessage] = useState("");
 
-  // 🔍 FILTER STATES
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("All");
   const [specializationFilter, setSpecializationFilter] = useState("All");
 
-  /* ================= LOAD FROM LOCAL STORAGE ================= */
+  /* ================= LOAD FROM BACKEND ================= */
   useEffect(() => {
-    const stored = localStorage.getItem(STORAGE_KEY);
-
-    if (stored) {
-      setTrainers(JSON.parse(stored));
-    } else {
-      const initialTrainers = [
-        {
-          name: "Alex Fit",
-          email: "alex.fit@gym.com",
-          specialization: "Strength",
-          clients: 18,
-          status: "Active",
-        },
-        {
-          name: "Neha Sharma",
-          email: "neha.sharma@gym.com",
-          specialization: "Yoga",
-          clients: 12,
-          status: "Active",
-        },
-        {
-          name: "Rohit Verma",
-          email: "rohit.verma@gym.com",
-          specialization: "Cardio",
-          clients: 6,
-          status: "On Leave",
-        },
-        {
-          name: "Vikram Rao",
-          email: "vikram.rao@gym.com",
-          specialization: "Strength",
-          clients: 0,
-          status: "Inactive",
-        },
-      ];
-
-      setTrainers(initialTrainers);
-      localStorage.setItem(
-        STORAGE_KEY,
-        JSON.stringify(initialTrainers)
-      );
-    }
+    fetchTrainers();
   }, []);
 
-  /* ================= ADD TRAINER ================= */
-  const addTrainer = (trainer) => {
-    const updated = [...trainers, trainer];
-    setTrainers(updated);
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
-    setShowModal(false);
+  const fetchTrainers = async () => {
+    try {
+      const response = await getTrainers();
+      setTrainers(response.data);
+    } catch (error) {
+      console.error("Error fetching trainers:", error);
+    }
   };
 
-  /* ================= FILTER LOGIC ================= */
+  /* ================= ADD TRAINER ================= */
+  const handleAddTrainer = async (trainer) => {
+    try {
+      await addTrainerApi(trainer);
+
+      setSuccessMessage("Trainer added successfully (Email Sent ✅)");
+      fetchTrainers();
+      setShowModal(false);
+
+      setTimeout(() => {
+        setSuccessMessage("");
+      }, 3000);
+
+    } catch (error) {
+      console.error("Error adding trainer:", error);
+    }
+  };
+
+  /* ================= DELETE TRAINER ================= */
+  const handleDeleteTrainer = async (id) => {
+    try {
+      await deleteTrainerApi(id);
+
+      setSuccessMessage("Trainer removed successfully");
+      fetchTrainers();
+
+      setTimeout(() => {
+        setSuccessMessage("");
+      }, 3000);
+
+    } catch (error) {
+      console.error("Error deleting trainer:", error);
+    }
+  };
+
+  /* ================= FILTER LOGIC (UNCHANGED) ================= */
   const filteredTrainers = trainers.filter((t) => {
     const searchMatch =
       t.name.toLowerCase().includes(search.toLowerCase()) ||
@@ -82,7 +81,6 @@ export default function TrainerManagement() {
     return searchMatch && statusMatch && specializationMatch;
   });
 
-  /* ================= STATS ================= */
   const total = trainers.length;
   const active = trainers.filter(t => t.status === "Active").length;
   const onLeave = trainers.filter(t => t.status === "On Leave").length;
@@ -100,6 +98,13 @@ export default function TrainerManagement() {
         backgroundAttachment: "fixed",
       }}
     >
+      {/* SUCCESS MESSAGE */}
+      {successMessage && (
+        <div className="mb-6 p-3 rounded-lg bg-green-500/20 text-green-400 border border-green-500/30">
+          {successMessage}
+        </div>
+      )}
+
       {/* ===== HEADER ===== */}
       <div className="flex items-center justify-between mb-10">
         <div>
@@ -173,15 +178,18 @@ export default function TrainerManagement() {
               <th className="text-left px-6 py-3">Trainer</th>
               <th>Email</th>
               <th>Specialization</th>
-              <th>Clients</th>
               <th>Status</th>
               <th className="text-right px-6">Actions</th>
             </tr>
           </thead>
 
           <tbody>
-            {filteredTrainers.map((t, i) => (
-              <TrainerRow key={i} {...t} />
+            {filteredTrainers.map((t) => (
+              <TrainerRow
+                key={t.id}
+                {...t}
+                onDelete={handleDeleteTrainer}
+              />
             ))}
           </tbody>
         </table>
@@ -194,14 +202,14 @@ export default function TrainerManagement() {
       {showModal && (
         <AddTrainerModal
           onClose={() => setShowModal(false)}
-          onAdd={addTrainer}
+          onAdd={handleAddTrainer}
         />
       )}
     </div>
   );
 }
 
-/* ===== COMPONENTS ===== */
+/* ===== COMPONENTS (UNCHANGED UI) ===== */
 
 function Stat({ title, value }) {
   return (
@@ -212,7 +220,8 @@ function Stat({ title, value }) {
   );
 }
 
-function TrainerRow({ name, email, specialization, clients, status }) {
+function TrainerRow({ id, name, email, specialization, status, onDelete }) {
+
   const statusStyle = {
     Active: "bg-[#39ff14]/20 text-[#39ff14]",
     Inactive: "bg-gray-500/20 text-gray-400",
@@ -221,34 +230,31 @@ function TrainerRow({ name, email, specialization, clients, status }) {
 
   return (
     <tr className="border-t border-white/10 hover:bg-white/5">
-      <td className="px-6 py-4 flex gap-3 items-center">
-        <img
-          src={`https://i.pravatar.cc/40?u=${email}`}
-          className="rounded-full"
-        />
-        <div>
-          <p className="font-medium">{name}</p>
-          <p className="text-xs text-gray-400">{email}</p>
-        </div>
+      <td className="px-6 py-4">
+        <p className="font-medium">{name}</p>
+        <p className="text-xs text-gray-400">{email}</p>
       </td>
       <td className="text-center">{email}</td>
       <td className="text-center">{specialization}</td>
-      <td className="text-center">{clients}</td>
       <td className="text-center">
         <span className={`px-3 py-1 rounded-full text-xs ${statusStyle[status]}`}>
           {status}
         </span>
       </td>
-      <td className="px-6 text-right space-x-3">
-        <button>👁</button>
-        <button>✏️</button>
-        <button>🗑</button>
+      <td className="px-6 text-right">
+        <button
+          onClick={() => onDelete(id)}
+          className="text-red-400 hover:text-red-500"
+        >
+          🗑
+        </button>
       </td>
     </tr>
   );
 }
 
 function AddTrainerModal({ onClose, onAdd }) {
+
   const [form, setForm] = useState({
     name: "",
     email: "",
@@ -258,7 +264,7 @@ function AddTrainerModal({ onClose, onAdd }) {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    onAdd({ ...form, clients: 0 });
+    onAdd(form);
   };
 
   return (
@@ -275,6 +281,7 @@ function AddTrainerModal({ onClose, onAdd }) {
           onChange={(e) => setForm({ ...form, name: e.target.value })}
           required
         />
+
         <input
           placeholder="Email"
           className="w-full mb-3 px-3 py-2 bg-black border border-white/10 rounded"
@@ -284,9 +291,7 @@ function AddTrainerModal({ onClose, onAdd }) {
 
         <select
           className="w-full mb-3 px-3 py-2 bg-black border border-white/10 rounded"
-          onChange={(e) =>
-            setForm({ ...form, specialization: e.target.value })
-          }
+          onChange={(e) => setForm({ ...form, specialization: e.target.value })}
         >
           <option>Strength</option>
           <option>Yoga</option>

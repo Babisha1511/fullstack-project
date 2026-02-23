@@ -3,6 +3,7 @@ import { Routes, Route, Navigate } from "react-router-dom";
 /* ========= PUBLIC ========= */
 import Home from "./pages/home/Home";
 import Login from "./auth/Login";
+import About from "./pages/about/About";
 
 /* ========= PROTECTED ========= */
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -14,7 +15,7 @@ import Schedule from "./pages/member/Schedule";
 import WorkoutPlans from "./pages/member/WorkoutPlans";
 import DietChart from "./pages/member/DietChart";
 import StorePayment from "./pages/member/StorePayment";
-import MemberCheckout from "./pages/member/MemberCheckout"; // ✅ ADDED
+import MemberCheckout from "./pages/member/MemberCheckout";
 import MemberSettings from "./pages/member/Settings";
 
 /* ========= TRAINER ========= */
@@ -36,7 +37,6 @@ import Reports from "./pages/admin/Reports";
 import StorePaymentAdmin from "./pages/admin/StorePaymentAdmin";
 import Equipments from "./pages/admin/Equipments";
 import AdminSettings from "./pages/admin/AdminSettings";
-import About from "./pages/about/About";
 
 export default function App() {
   const role = localStorage.getItem("role"); // admin | trainer | member
@@ -47,6 +47,7 @@ export default function App() {
       {/* ===== PUBLIC ===== */}
       <Route path="/" element={<Home />} />
       <Route path="/login" element={<Login />} />
+      <Route path="/about" element={<About />} />
 
       {/* ===== MEMBER ===== */}
       <Route
@@ -59,10 +60,14 @@ export default function App() {
       >
         <Route path="dashboard" element={<MemberDashboard />} />
         <Route path="schedule" element={<Schedule />} />
+
+        {/* 🔥 IMPORTANT FIX */}
         <Route path="workouts" element={<WorkoutPlans />} />
+
+
         <Route path="diet" element={<DietChart />} />
         <Route path="store" element={<StorePayment />} />
-        <Route path="checkout" element={<MemberCheckout />} /> {/* ✅ ADDED */}
+        <Route path="checkout" element={<MemberCheckout />} />
         <Route path="settings" element={<MemberSettings />} />
       </Route>
 
@@ -113,7 +118,6 @@ export default function App() {
           )
         }
       />
-      <Route path="/about" element={<About />} />
 
     </Routes>
   );

@@ -1,18 +1,15 @@
 import { useState, useEffect } from "react";
-
-const STORAGE_KEY = "gym_classes";
+import {
+  getSchedules,
+  createSchedule,
+  updateSchedule,
+  deleteSchedule
+} from "../../api/scheduleApi";
 
 export default function ClassSchedule() {
-  /* ================= STATE ================= */
-  const [classes, setClasses] = useState(() => {
-    const stored = localStorage.getItem(STORAGE_KEY);
-    try {
-      return stored ? JSON.parse(stored) : [];
-    } catch {
-      return [];
-    }
-  });
 
+  /* ================= STATE ================= */
+  const [classes, setClasses] = useState([]);
   const [modalOpen, setModalOpen] = useState(false);
   const [mode, setMode] = useState("add");
   const [selectedClass, setSelectedClass] = useState(null);
@@ -28,10 +25,19 @@ export default function ClassSchedule() {
     "Sunday",
   ];
 
-  /* ================= AUTO SAVE ================= */
+  /* ================= LOAD FROM BACKEND ================= */
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(classes));
-  }, [classes]);
+    loadSchedules();
+  }, []);
+
+  const loadSchedules = async () => {
+    try {
+      const response = await getSchedules();
+      setClasses(response.data);
+    } catch (error) {
+      console.error("Error loading schedules:", error);
+    }
+  };
 
   /* ================= ACTIONS ================= */
   const openAdd = () => {
@@ -52,42 +58,68 @@ export default function ClassSchedule() {
     setModalOpen(true);
   };
 
-  const saveClass = (data) => {
-    const clients = Number(data.clients || 0);
-    const capacity = Number(data.capacity || 0);
+ const saveClass = async (data) => {
 
-    const normalized = {
-      ...data,
-      id: data.id || Date.now(),
-      clients,
-      capacity,
-      status:
-        clients >= capacity
-          ? "Full"
-          : capacity - clients <= 3
-          ? "Filling Fast"
-          : "Available",
-    };
+  const clients = Number(data.clients || 0);
+  const capacity = Number(data.capacity || 0);
 
-    setClasses((prev) =>
-      mode === "add"
-        ? [...prev, normalized]
-        : prev.map((c) =>
-            c.id === normalized.id ? normalized : c
-          )
-    );
+  const status =
+    clients >= capacity
+      ? "Full"
+      : capacity - clients <= 3
+      ? "Filling Fast"
+      : "Available";
+
+  const payload = {
+    ...data,
+    clients,
+    capacity,
+    status
+  };
+
+  try {
+
+    if (mode === "add") {
+      await createSchedule(payload);
+    } else {
+      await updateSchedule(data.id, payload);
+    }
+
+    await loadSchedules();
+
+    // 🔥🔥🔥 ADD THIS LINE
+    window.dispatchEvent(new Event("schedulesUpdated"));
 
     setModalOpen(false);
-  };
 
-  const confirmDelete = (id) => {
-    setClasses((prev) => prev.filter((c) => c.id !== id));
+  } catch (error) {
+    console.error("SAVE ERROR:", error);
+  }
+};
+
+const confirmDelete = async (id) => {
+  try {
+    await deleteSchedule(id);
+
+    setClasses(prev =>
+      prev.filter(cls => cls.id !== id)
+    );
+
     setDeleteId(null);
-  };
+
+    window.dispatchEvent(new Event("schedulesUpdated"));
+
+  } catch (error) {
+    console.error("Delete failed:", error);
+  }
+};
+
+
 
   /* ================= UI ================= */
   return (
     <div className="relative min-h-screen text-white">
+
       {/* BACKGROUND */}
       <div
         className="absolute inset-0 bg-cover bg-center"
@@ -100,6 +132,7 @@ export default function ClassSchedule() {
 
       {/* CONTENT */}
       <div className="relative z-10 p-8 min-h-screen">
+
         {/* HEADER */}
         <div className="flex justify-between mb-8">
           <div>
@@ -204,6 +237,7 @@ export default function ClassSchedule() {
 /* ================= MODAL ================= */
 
 function ClassModal({ mode, data, onClose, onSave, days }) {
+
   const [form, setForm] = useState(
     data
       ? { ...data }

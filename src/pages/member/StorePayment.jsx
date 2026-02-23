@@ -1,16 +1,11 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
+import { createOrder, verifyPayment } from "../../api/paymentApi";
 
 export default function StorePayment() {
 
   /* ================= STATE ================= */
 
   const [cart, setCart] = useState([]);
-
-  const [orders, setOrders] = useState(() => {
-    const saved = localStorage.getItem("gym_orders");
-    return saved ? JSON.parse(saved) : [];
-  });
-
   const [activeTab, setActiveTab] = useState("All Products");
   const [showPayment, setShowPayment] = useState(false);
   const [paymentSuccess, setPaymentSuccess] = useState(false);
@@ -24,12 +19,6 @@ export default function StorePayment() {
     phone: "",
     mode: "",
   });
-
-  /* ================= PERSIST MEMBER ORDERS ================= */
-
-  useEffect(() => {
-    localStorage.setItem("gym_orders", JSON.stringify(orders));
-  }, [orders]);
 
   /* ================= CALCULATIONS ================= */
 
@@ -65,58 +54,81 @@ export default function StorePayment() {
     setShowPayment(true);
   };
 
-  /* ================= CONFIRM PAYMENT (UPDATED) ================= */
+  /* ================= CONFIRM PAYMENT ================= */
 
-  const confirmPayment = () => {
-    if (!details.name || !details.address || !details.phone || !details.mode) {
-      alert("Please fill all checkout details");
-      return;
-    }
+  const confirmPayment = async () => {
+  if (!details.name || !details.address || !details.phone || !details.mode) {
+    alert("Please fill all checkout details");
+    return;
+  }
 
-    const isOnline = details.mode === "UPI" || details.mode === "Card";
-
-    /* ===== ADMIN STORAGE ===== */
-    const adminTransactions =
-      JSON.parse(localStorage.getItem("gym_admin_transactions")) || [];
-
-    const newAdminTransaction = {
-      id: "#TXN" + Math.floor(100000 + Math.random() * 900000),
-      user: details.name,
-      type: cart.some((c) => c.name === "Annual Membership")
-        ? "Membership"
-        : "Store Purchase",
-      products: cart.map((c) => `${c.name} (₹${c.price})`),
-      paymentMode: details.mode,
-      status: isOnline ? "Completed" : "Order Placed",
+  if (details.mode === "Cash") {
+    alert("Cash selected. Order created without Razorpay.");
+    await createOrder({
+      userName: details.name,
+      type: "Store Purchase",
+      products: cart.map((c) => c.name),
       amount: total,
-      date: new Date().toLocaleString(),
-    };
-
-    localStorage.setItem(
-      "gym_admin_transactions",
-      JSON.stringify([newAdminTransaction, ...adminTransactions])
-    );
-
-    /* ===== MEMBER ORDER HISTORY ===== */
-    const newOrder = {
-      id: newAdminTransaction.id,
-      date: newAdminTransaction.date,
-      items: newAdminTransaction.products.join(", "),
-      status: newAdminTransaction.status,
-      amount: newAdminTransaction.amount,
-      mode: newAdminTransaction.paymentMode,
-    };
-
-    setOrders((prev) => [newOrder, ...prev]);
+      paymentMode: details.mode
+    });
 
     setCart([]);
     setShowPayment(false);
     setPaymentSuccess(true);
+    return;
+  }
 
-    setDetails({ name: "", address: "", phone: "", mode: "" });
-
-    setTimeout(() => setPaymentSuccess(false), 3000);
+  const requestData = {
+    userName: details.name,
+    type: "Store Purchase",
+    products: cart.map((c) => c.name),
+    amount: total,
+    paymentMode: details.mode
   };
+
+  try {
+    const response = await createOrder(requestData);
+
+    const { orderId, key, amount } = response.data;
+
+    const options = {
+      key: key,
+      amount: amount * 100, // Razorpay expects paise
+      currency: "INR",
+      name: "FitTrack Gym",
+      description: "Payment Transaction",
+      order_id: orderId,
+      handler: async function (res) {
+        await verifyPayment({
+          orderId: orderId,
+          paymentId: res.razorpay_payment_id
+        });
+
+        setCart([]);
+        setShowPayment(false);
+        setPaymentSuccess(true);
+        setDetails({ name: "", address: "", phone: "", mode: "" });
+
+        setTimeout(() => setPaymentSuccess(false), 3000);
+      },
+      prefill: {
+        name: details.name,
+        contact: details.phone
+      },
+      theme: {
+        color: "#39ff14"
+      }
+    };
+
+    const rzp = new window.Razorpay(options);
+    rzp.open();
+
+  } catch (error) {
+    console.error("Payment failed:", error);
+    alert("Payment failed. Try again.");
+  }
+};
+
 
   return (
     <div
@@ -215,43 +227,6 @@ export default function StorePayment() {
               </div>
             ))}
         </div>
-
-        {/* ORDER HISTORY */}
-        <h2 className="text-xl font-semibold mb-4">Order History</h2>
-
-        <div className="bg-[#121212] border border-white/10 rounded-2xl overflow-hidden">
-          <table className="w-full text-sm">
-            <thead className="bg-[#0d0d0d] text-gray-400">
-              <tr>
-                <th className="p-4 text-left">Order</th>
-                <th className="p-4 text-left">Date</th>
-                <th className="p-4 text-left">Items</th>
-                <th className="p-4 text-left">Mode</th>
-                <th className="p-4 text-left">Status</th>
-                <th className="p-4 text-left">Amount</th>
-              </tr>
-            </thead>
-            <tbody>
-              {orders.length === 0 && (
-                <tr>
-                  <td colSpan="6" className="p-6 text-gray-500 text-center">
-                    No orders yet
-                  </td>
-                </tr>
-              )}
-              {orders.map((o, i) => (
-                <tr key={i} className="border-t border-white/10">
-                  <td className="p-4">{o.id}</td>
-                  <td className="p-4">{o.date}</td>
-                  <td className="p-4">{o.items}</td>
-                  <td className="p-4">{o.mode}</td>
-                  <td className="p-4">{o.status}</td>
-                  <td className="p-4">₹{o.amount}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
       </main>
 
       {/* ================= CART ================= */}
@@ -318,6 +293,7 @@ export default function StorePayment() {
                 setDetails({ ...details, name: e.target.value })
               }
             />
+
             <input
               placeholder="Address"
               className="w-full mb-3 px-3 py-2 bg-black border border-white/10 rounded"
@@ -326,6 +302,7 @@ export default function StorePayment() {
                 setDetails({ ...details, address: e.target.value })
               }
             />
+
             <input
               placeholder="Phone Number"
               className="w-full mb-3 px-3 py-2 bg-black border border-white/10 rounded"
@@ -397,9 +374,7 @@ export default function StorePayment() {
       {/* ================= SUCCESS ================= */}
       {paymentSuccess && (
         <div className="fixed bottom-6 right-6 bg-[#39ff14] text-black px-6 py-3 rounded-xl font-semibold">
-          {details.mode === "Cash"
-            ? "📦 Order Successful (Cash on Delivery)"
-            : "✅ Payment Successful"}
+          ✅ Order Created Successfully
         </div>
       )}
     </div>

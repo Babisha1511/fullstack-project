@@ -1,13 +1,7 @@
 import { useState, useEffect } from "react";
-
-const STORAGE_KEY = "gym_clients";
-
+import { addClient as addClientApi } from "../../api/clientApi";
 export default function AdminClients() {
   /* ===== CLIENT DATA (SHARED WITH TRAINER) ===== */
-  const [clients, setClients] = useState(() => {
-    const saved = localStorage.getItem(STORAGE_KEY);
-    return saved ? JSON.parse(saved) : [];
-  });
 
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("All");
@@ -15,6 +9,22 @@ export default function AdminClients() {
   const [trainerFilter, setTrainerFilter] = useState("All");
 
   const [showModal, setShowModal] = useState(false);
+
+  const [clients, setClients] = useState([]);
+  const [successMessage, setSuccessMessage] = useState("");
+  useEffect(() => {
+  fetchClients();
+}, []);
+
+const fetchClients = async () => {
+  try {
+    const res = await fetch("http://localhost:8086/api/clients");
+    const data = await res.json();
+    setClients(data);
+  } catch (error) {
+    console.error("Error fetching clients:", error);
+  }
+};
 
   const [form, setForm] = useState({
     name: "",
@@ -29,22 +39,26 @@ export default function AdminClients() {
   });
 
   /* ===== SYNC WITH LOCAL STORAGE ===== */
-  useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(clients));
-  }, [clients]);
 
   /* ===== ADD CLIENT ===== */
-  const addClient = () => {
-    if (!form.name) return;
+ const handleAddClient = async () => {
+  if (!form.name) return;
 
-    const newClient = {
-      ...form,
+  try {
+    const response = await addClientApi({
+      name: form.name,
       email:
         form.email ||
         form.name.toLowerCase().replace(/\s+/g, "") + "@gym.com",
-    };
+      phone: form.phone,
+      membership: form.membership,
+      trainer: form.trainer,
+      status: form.status.toUpperCase(),
+    });
 
-    setClients([...clients, newClient]);
+    setSuccessMessage(response.data);  // 🔥 show backend message
+
+    fetchClients();
     setShowModal(false);
 
     setForm({
@@ -54,17 +68,37 @@ export default function AdminClients() {
       membership: "Basic",
       trainer: "",
       status: "Active",
-      goal: "",
-      plan: "",
-      progress: 0,
     });
-  };
 
-  /* ===== REMOVE CLIENT ===== */
-  const removeClient = (email) => {
-    setClients(clients.filter((c) => c.email !== email));
-  };
+    // Auto-hide message after 3 seconds
+    setTimeout(() => {
+      setSuccessMessage("");
+    }, 3000);
 
+  } catch (error) {
+    console.error("Error saving client:", error);
+  }
+};
+
+const removeClient = async (id) => {
+  try {
+    await fetch(`http://localhost:8086/api/clients/${id}`, {
+      method: "DELETE",
+    });
+
+    // Update UI after delete
+    setClients(clients.filter((c) => c.id !== id));
+
+    setSuccessMessage("Client removed successfully");
+
+    setTimeout(() => {
+      setSuccessMessage("");
+    }, 3000);
+
+  } catch (error) {
+    console.error("Error deleting client:", error);
+  }
+};
   /* ===== FILTER ===== */
   const filteredClients = clients.filter((c) => {
     const searchMatch =
@@ -108,6 +142,11 @@ export default function AdminClients() {
       }}
     >
       {/* ===== HEADER ===== */}
+      {successMessage && (
+  <div className="mb-6 p-3 rounded-lg bg-green-500/20 text-green-400 border border-green-500/30">
+    {successMessage}
+  </div>
+)}
       <div className="flex justify-between items-center mb-10">
         <div>
           <h1 className="text-3xl font-bold">Admin Client Management</h1>
@@ -212,7 +251,7 @@ export default function AdminClients() {
                 </td>
                 <td className="text-right px-6">
                   <button
-                    onClick={() => removeClient(c.email)}
+                    onClick={() => removeClient(c.id)}
                     className="text-red-400 hover:text-red-500"
                   >
                     🗑
@@ -296,7 +335,7 @@ export default function AdminClients() {
                 Cancel
               </button>
               <button
-                onClick={addClient}
+                onClick={handleAddClient}
                 className="px-4 py-2 rounded bg-[#39ff14] text-black font-semibold"
               >
                 Save Client
@@ -317,4 +356,4 @@ function Stat({ title, value }) {
       <h2 className="text-3xl font-bold text-[#39ff14]">{value}</h2>
     </div>
   );
-}
+} 

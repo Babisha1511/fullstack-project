@@ -1,16 +1,12 @@
 import { useState, useEffect } from "react";
-
-const STORAGE_KEY = "gym_clients";
+import { getClients } from "../../api/clientApi";
+import { addClient as addClientApi } from "../../api/clientApi";
 
 export default function TrainerClients() {
-  /* ===== CLIENT DATA (SHARED WITH ADMIN) ===== */
-  const [clients, setClients] = useState(() => {
-    const saved = localStorage.getItem(STORAGE_KEY);
-    return saved ? JSON.parse(saved) : [];
-  });
-
+ const [clients, setClients] = useState([]);
   const [search, setSearch] = useState("");
   const [showModal, setShowModal] = useState(false);
+  const [successMessage, setSuccessMessage] = useState("");
 
   const [form, setForm] = useState({
     name: "",
@@ -20,31 +16,40 @@ export default function TrainerClients() {
     progress: 0,
   });
 
-  /* ===== SYNC WITH LOCAL STORAGE ===== */
-  useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(clients));
-  }, [clients]);
+useEffect(() => {
+  fetchClients();
+}, []);
+
+const fetchClients = async () => {
+  try {
+    const response = await getClients();
+    setClients(response.data);
+  } catch (error) {
+    console.error("Error fetching clients:", error);
+  }
+};
 
   /* ===== ADD CLIENT ===== */
-  const addClient = () => {
-    if (!form.name || !form.goal || !form.plan) return;
+  const handleAddClient = async () => {
+  if (!form.name || !form.goal || !form.plan) return;
 
-    const newClient = {
-      name: form.name.trim(),
+  try {
+    const response = await addClientApi({
+      name: form.name,
       email:
         form.email ||
         form.name.toLowerCase().replace(/\s+/g, "") + "@gym.com",
-      goal: form.goal,
-      plan: form.plan,
-      progress: Number(form.progress) || 0,
-
-      // admin defaults
       membership: "Trainer Added",
       trainer: "Assigned",
       status: "Active",
-    };
+      goal: form.goal,
+      plan: form.plan,
+      progress: Number(form.progress) || 0,
+    });
 
-    setClients([...clients, newClient]);
+    setSuccessMessage("Client added successfully");
+
+    fetchClients(); // refresh from backend
     setShowModal(false);
 
     setForm({
@@ -54,12 +59,34 @@ export default function TrainerClients() {
       plan: "",
       progress: 0,
     });
-  };
 
+    setTimeout(() => {
+      setSuccessMessage("");
+    }, 3000);
+
+  } catch (error) {
+    console.error("Error saving client:", error);
+  }
+};
   /* ===== REMOVE CLIENT ===== */
-  const removeClient = (email) => {
-    setClients(clients.filter((c) => c.email !== email));
-  };
+  const removeClient = async (id) => {
+  try {
+    await fetch(`http://localhost:8086/api/clients/${id}`, {
+      method: "DELETE",
+    });
+
+    setSuccessMessage("Client removed successfully");
+
+    fetchClients(); // refresh list
+
+    setTimeout(() => {
+      setSuccessMessage("");
+    }, 3000);
+
+  } catch (error) {
+    console.error("Error deleting client:", error);
+  }
+};
 
   /* ===== SEARCH FILTER ===== */
   const filteredClients = clients.filter(
@@ -80,7 +107,11 @@ export default function TrainerClients() {
     >
       {/* ===== PAGE OVERLAY CONTENT ===== */}
       <section className="p-8">
-
+        {successMessage && (
+  <div className="mb-6 p-3 rounded-lg bg-green-500/20 text-green-400 border border-green-500/30">
+    {successMessage}
+  </div>
+)}
         {/* ===== HEADER ===== */}
         <div className="flex justify-between items-center mb-8">
           <div>
@@ -144,7 +175,7 @@ export default function TrainerClients() {
 
                   <td className="text-right px-6">
                     <button
-                      onClick={() => removeClient(c.email)}
+                      onClick={() => removeClient(c.id)}
                       className="text-red-400 hover:text-red-500"
                     >
                       🗑
@@ -216,7 +247,7 @@ export default function TrainerClients() {
                 Cancel
               </button>
               <button
-                onClick={addClient}
+                onClick={handleAddClient}
                 className="px-4 py-2 rounded bg-[#39ff14] text-black font-semibold"
               >
                 Save Client

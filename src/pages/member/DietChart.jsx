@@ -7,20 +7,37 @@ export default function DietChart() {
 
   const userEmail = localStorage.getItem("userEmail");
 
-  /* ========= LOAD TRAINER PLAN (ONLY ADDITION) ========= */
   useEffect(() => {
-    const plans =
-      JSON.parse(localStorage.getItem("nutritionPlans")) || [];
+  const fetchDietPlan = async () => {
 
-    const matched = plans.find(
-      (p) =>
-        p.email &&
-        p.email.trim().toLowerCase() ===
-          userEmail?.trim().toLowerCase()
-    );
+    if (!userEmail) return;
 
-    setDietPlan(matched || null);
-  }, [userEmail]);
+    try {
+      const response = await fetch(
+        `http://localhost:1013/api/diets/member/${userEmail}`
+      );
+
+      if (!response.ok) {
+        throw new Error("Failed to fetch plan");
+      }
+
+      const data = await response.json();
+
+      if (data.length > 0) {
+        setDietPlan(data[0]);
+      } else {
+        setDietPlan(null);
+      }
+
+    } catch (error) {
+      console.error("Error fetching diet plan:", error);
+      setDietPlan(null);
+    }
+  };
+
+  fetchDietPlan();
+}, [userEmail]);
+
 
   return (
     <div

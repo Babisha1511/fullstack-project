@@ -92,24 +92,7 @@ export default function TrainerSettings() {
         </div>
 
         {/* ===== PROFILE CARD ===== */}
-        <div className="bg-black/60 backdrop-blur-lg border border-white/10 rounded-2xl p-6 flex items-center justify-between mb-12">
-          <div className="flex items-center gap-5">
-            <img
-              src={`https://i.pravatar.cc/100?u=${email}`}
-              alt="Trainer"
-              className="w-20 h-20 rounded-full"
-            />
-            <div>
-              <h2 className="text-xl font-semibold">
-                {firstName} {lastName}
-              </h2>
-              <p className="text-gray-400 text-sm">{email}</p>
-              <span className="inline-block mt-1 text-xs bg-[#39ff14]/20 text-[#39ff14] px-2 py-1 rounded">
-                Trainer Account
-              </span>
-            </div>
-          </div>
-        </div>
+        
 
         {/* ===== PERSONAL INFORMATION ===== */}
         <Section title="Personal Information">

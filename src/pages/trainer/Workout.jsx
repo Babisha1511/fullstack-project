@@ -1,277 +1,216 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import {
+  createWorkoutPlan,
+  getAllWorkoutPlans,
+  deleteWorkoutPlan
+} from "../../api/workoutPlanApi";
 
 export default function Workout() {
   const [showModal, setShowModal] = useState(false);
-
-  const [workouts, setWorkouts] = useState(() => {
-    return (
-      JSON.parse(localStorage.getItem("trainer_workout_list")) || [
-        {
-          email: "aisha@gmail.com",
-          name: "Aisha Sharma",
-          goal: "Weight Loss",
-          plan: "Fat Burn Pro",
-          frequency: "5 days / week",
-          progress: 0,
-          status: "Active",
-        },
-      ]
-    );
-  });
+  const [plans, setPlans] = useState([]);
+  const [showSuccess, setShowSuccess] = useState(false);
 
   const [form, setForm] = useState({
-    name: "",
-    email: "",
-    goal: "",
-    plan: "",
-    frequency: "",
+    memberId: "",
+    title: "",
+    exerciseIds: ""
   });
 
-  /* ===== SAVE WORKOUT ===== */
-  const addWorkout = () => {
-    if (
-      !form.name ||
-      !form.email ||
-      !form.goal ||
-      !form.plan ||
-      !form.frequency
-    )
-      return;
+  /* ===== LOAD ALL PLANS ===== */
+  useEffect(() => {
+    loadPlans();
+  }, []);
 
-    const newWorkout = {
-      ...form,
-      progress: 0,
-      status: "Active",
-    };
+  const loadPlans = async () => {
+    try {
+      const res = await getAllWorkoutPlans();
+      setPlans(res.data);
+    } catch (err) {
+      console.error(err);
+    }
+  };
 
-    /* ---- Trainer list (table) ---- */
-    const updatedList = [...workouts, newWorkout];
-    setWorkouts(updatedList);
-    localStorage.setItem(
-      "trainer_workout_list",
-      JSON.stringify(updatedList)
-    );
+  /* ===== CREATE PLAN ===== */
+  const addWorkout = async () => {
+    if (!form.memberId || !form.title) return;
 
-    /* ---- Member workout plan ---- */
-    const storedPlans =
-      JSON.parse(localStorage.getItem("trainer_workout_plans")) || {};
+    const exerciseArray = form.exerciseIds
+      .split(",")
+      .map((id) => id.trim())
+      .filter((id) => id !== "");
 
-    storedPlans[form.email] = {
-      planName: form.plan,
-      goal: form.goal,
-      frequency: form.frequency,
-      exercises: [
-        { name: "Treadmill Running", sets: "20 min" },
-        { name: "Jump Squats", sets: "3 × 15" },
-        { name: "Push Ups", sets: "3 × 12" },
-        { name: "Plank Hold", sets: "3 × 45 sec" },
-        { name: "Mountain Climbers", sets: "3 × 30 sec" },
-      ],
-    };
+    try {
+      await createWorkoutPlan({
+        memberId: form.memberId.trim().toLowerCase(),
+        title: form.title,
+        exerciseIds: exerciseArray
+      });
 
-    localStorage.setItem(
-      "trainer_workout_plans",
-      JSON.stringify(storedPlans)
-    );
+      setShowSuccess(true);
+setTimeout(() => setShowSuccess(false), 2000);
 
-    setForm({
-      name: "",
-      email: "",
-      goal: "",
-      plan: "",
-      frequency: "",
-    });
 
-    setShowModal(false);
+      setForm({
+        memberId: "",
+        title: "",
+        exerciseIds: ""
+      });
+
+      setShowModal(false);
+      loadPlans();
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  /* ===== DELETE PLAN ===== */
+  const handleDelete = async (id) => {
+    if (!window.confirm("Delete this workout plan?")) return;
+
+    try {
+      await deleteWorkoutPlan(id);
+      loadPlans();
+    } catch (error) {
+      console.error(error);
+    }
   };
 
   return (
     <main
-      className="min-h-screen bg-cover bg-center bg-no-repeat text-white"
-      style={{
-        backgroundImage:
-          "url('https://i.pinimg.com/1200x/a7/55/0e/a7550e08439c5a9443ab3f7db6c6fab7.jpg')",
-      }}
-    >
-      <section className="min-h-screen p-8 bg-black/80">
-        {/* ===== HEADER ===== */}
-        <div className="flex items-center justify-between mb-10">
-          <div>
-            <h1 className="text-3xl font-bold">Workout Plans</h1>
-            <p className="text-gray-400 mt-1">
-              Create and assign workout routines to members
-            </p>
-          </div>
+  className="min-h-screen bg-cover bg-center bg-no-repeat text-white relative"
+  style={{
+    backgroundImage:
+      "url('https://i.pinimg.com/1200x/a7/55/0e/a7550e08439c5a9443ab3f7db6c6fab7.jpg')",
+  }}
+>
 
-          <button
-            onClick={() => setShowModal(true)}
-            className="px-5 py-2 rounded-lg bg-[#39ff14] text-black font-semibold
-                       shadow-[0_0_20px_rgba(57,255,20,0.4)]
-                       hover:scale-105 transition"
+  {/* DARK OVERLAY */}
+  <div className="absolute inset-0 bg-black/70"></div>
+
+  {/* CONTENT WRAPPER */}
+  <div className="relative z-10">
+
+
+      {/* HEADER */}
+      <div className="flex justify-between items-center pt-10 px-10">
+         <h1 className="text-3xl font-bold text-white">
+  Workout Plans
+</h1>
+
+        <button
+          onClick={() => setShowModal(true)}
+          className="bg-[#39ff14] text-black px-4 py-2 text-sm rounded-md font-medium hover:scale-105 transition shadow-md"
+        >
+          + Create Plan
+        </button>
+      </div>
+
+      {/* WORKOUT PLAN CARDS */}
+      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 px-10 pb-10 mt-10">
+        {plans.map((plan) => (
+          <div
+            key={plan.id}
+            className="bg-black/60 backdrop-blur-md border border-white/10 rounded-2xl p-6 hover:scale-105 transition"
           >
-            ➕ Create Workout Plan
-          </button>
-        </div>
+            {/* MEMBER */}
+            <p className="text-sm text-gray-400 mb-1">Member</p>
+            <h3 className="text-lg font-semibold mb-4">
+              {plan.memberId}
+            </h3>
 
-        {/* ===== STATS ===== */}
-        <div className="grid md:grid-cols-4 gap-6 mb-12">
-          <Stat title="Total Plans" value={workouts.length} />
-          <Stat title="Active Members" value={workouts.length} />
-          <Stat title="Paused Plans" value="0" />
-          <Stat title="Completion Avg" value="—" />
-        </div>
+            {/* TITLE */}
+            <p className="text-sm text-gray-400 mb-1">Plan</p>
+            <h4 className="text-md font-medium mb-4">
+              {plan.title}
+            </h4>
 
-        {/* ===== TABLE ===== */}
-        <div className="bg-black/60 backdrop-blur-lg border border-white/10 rounded-2xl overflow-hidden">
-          <table className="w-full text-sm">
-            <thead className="bg-white/5 text-gray-400">
-              <tr>
-                <th className="px-6 py-3 text-left">Client</th>
-                <th>Email</th>
-                <th>Goal</th>
-                <th>Plan</th>
-                <th>Frequency</th>
-                <th>Status</th>
-                <th className="px-6 text-right">Actions</th>
-              </tr>
-            </thead>
-
-            <tbody>
-              {workouts.map((w, i) => (
-                <tr
-                  key={i}
-                  className="border-t border-white/10 hover:bg-white/5"
-                >
-                  <td className="px-6 py-4 flex items-center gap-3">
-                    <img
-                      src={`https://i.pravatar.cc/40?u=${w.email}`}
-                      alt={w.name}
-                      className="rounded-full"
-                    />
-                    <span>{w.name}</span>
-                  </td>
-
-                  <td className="text-center">{w.email}</td>
-                  <td className="text-center">{w.goal}</td>
-                  <td className="text-center">{w.plan}</td>
-                  <td className="text-center">{w.frequency}</td>
-
-                  <td className="text-center">
-                    <span className="px-3 py-1 rounded-full text-xs bg-[#39ff14] text-black">
-                      {w.status}
-                    </span>
-                  </td>
-
-                  <td className="px-6 text-right space-x-3">
-                    <button className="text-gray-400 hover:text-[#39ff14]">
-                      ✏️
-                    </button>
-                    <button className="text-gray-400 hover:text-[#39ff14]">
-                      👁
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </section>
-
-      {/* ===== MODAL ===== */}
-      {showModal && (
-        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50">
-          <div className="w-[420px] bg-gradient-to-br from-black to-zinc-900 p-6 rounded-2xl border border-white/10">
-            <div className="flex justify-between mb-4">
-              <h2 className="text-lg font-semibold">
-                Create Workout Plan
-              </h2>
-              <button
-                onClick={() => setShowModal(false)}
-                className="text-gray-400 hover:text-[#39ff14]"
-              >
-                ✕
-              </button>
+            {/* EXERCISE COUNT */}
+            <div className="flex justify-between items-center mb-4">
+              <span className="text-gray-400 text-sm">
+                Exercises
+              </span>
+              <span className="bg-[#39ff14] text-black px-3 py-1 rounded-full text-sm font-semibold">
+                {plan.exerciseIds?.length || 0}
+              </span>
             </div>
 
-            <div className="space-y-4">
-              <Input
-                label="Client Name"
-                value={form.name}
-                onChange={(e) =>
-                  setForm({ ...form, name: e.target.value })
-                }
-              />
-              <Input
-                label="Client Email"
-                value={form.email}
-                onChange={(e) =>
-                  setForm({ ...form, email: e.target.value })
-                }
-              />
-              <Input
-                label="Goal"
-                value={form.goal}
-                onChange={(e) =>
-                  setForm({ ...form, goal: e.target.value })
-                }
-              />
-              <Input
-                label="Plan Name"
-                value={form.plan}
-                onChange={(e) =>
-                  setForm({ ...form, plan: e.target.value })
-                }
-              />
-              <Input
-                label="Frequency"
-                value={form.frequency}
-                onChange={(e) =>
-                  setForm({
-                    ...form,
-                    frequency: e.target.value,
-                  })
-                }
-              />
-
-              <button
-                onClick={addWorkout}
-                className="w-full py-2 rounded-lg bg-[#39ff14] text-black font-semibold
-                           shadow-[0_0_20px_rgba(57,255,20,0.5)]
-                           hover:scale-105 transition"
-              >
-                Save Workout Plan
-              </button>
-            </div>
+            {/* DELETE */}
+            <button
+              onClick={() => handleDelete(plan.id)}
+              className="w-full bg-red-500 hover:bg-red-600 py-2 rounded-lg text-white font-medium transition"
+            >
+              Delete Plan
+            </button>
           </div>
-        </div>
-      )}
-    </main>
-  );
-}
+        ))}
+      </div>
+      {showSuccess && (
+  <div className="fixed bottom-6 right-6 bg-[#39ff14] text-black px-6 py-3 rounded-lg font-semibold shadow-lg">
+    ✅ Workout Plan Saved Successfully
+  </div>
+)}
 
-/* ===== COMPONENTS ===== */
 
-function Stat({ title, value }) {
-  return (
-    <div className="bg-black/60 border border-white/10 rounded-2xl p-6">
-      <p className="text-gray-400 text-sm mb-2">{title}</p>
-      <h2 className="text-3xl font-bold text-[#39ff14]">
-        {value}
+      {/* MODAL */}
+      {showModal && (
+  <div className="fixed inset-0 bg-black/80 flex items-center justify-center">
+    <div className="bg-[#111] p-6 rounded-xl w-[400px]">
+
+      <h2 className="text-lg font-bold mb-4 text-white">
+        Create Workout Plan
       </h2>
-    </div>
-  );
-}
 
-function Input({ label, ...props }) {
-  return (
-    <div>
-      <label className="text-xs text-gray-400">{label}</label>
       <input
-        {...props}
-        className="w-full mt-1 px-3 py-2 rounded-lg bg-black/60
-                   border border-white/10 text-white
-                   focus:outline-none focus:ring-2 focus:ring-[#39ff14]"
+        placeholder="Member Email"
+        value={form.memberId}
+        onChange={(e) =>
+          setForm({ ...form, memberId: e.target.value })
+        }
+        className="w-full mb-3 p-2 bg-black border border-white/20 rounded text-white"
       />
+
+      <input
+        placeholder="Plan Title"
+        value={form.title}
+        onChange={(e) =>
+          setForm({ ...form, title: e.target.value })
+        }
+        className="w-full mb-3 p-2 bg-black border border-white/20 rounded text-white"
+      />
+
+      <input
+        placeholder="Exercise Names (comma separated)"
+        value={form.exerciseIds}
+        onChange={(e) =>
+          setForm({
+            ...form,
+            exerciseIds: e.target.value
+          })
+        }
+        className="w-full mb-4 p-2 bg-black border border-white/20 rounded text-white"
+      />
+
+      {/* BUTTONS */}
+      <div className="flex gap-3">
+        <button
+          onClick={() => setShowModal(false)}
+          className="w-1/2 bg-gray-600 hover:bg-gray-700 text-white py-2 rounded-md transition"
+        >
+          Back
+        </button>
+
+        <button
+          onClick={addWorkout}
+          className="w-1/2 bg-[#39ff14] text-black py-2 rounded-md font-semibold hover:scale-105 transition"
+        >
+          Save
+        </button>
+      </div>
+
     </div>
+  </div>
+)}
+    </div>
+    </main>
   );
 }

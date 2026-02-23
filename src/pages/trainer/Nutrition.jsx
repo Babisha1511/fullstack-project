@@ -20,7 +20,7 @@ export default function Nutrition() {
     });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (!formData.email) {
@@ -28,36 +28,50 @@ export default function Nutrition() {
       return;
     }
 
-    // normalize email (IMPORTANT)
     const normalizedEmail = formData.email.trim().toLowerCase();
 
-    const existingPlans =
-      JSON.parse(localStorage.getItem("nutritionPlans")) || [];
+    try {
+      const response = await fetch(
+        "http://localhost:1013/api/diets",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            memberId: normalizedEmail,
+            title: formData.goal,
+            breakfast: formData.breakfast,
+            lunch: formData.lunch,
+            snacks: formData.snacks,
+            dinner: formData.dinner,
+            notes: formData.notes,
+            foodItemIds: []
+          }),
+        }
+      );
 
-    // replace plan if same email already exists
-    const updatedPlans = existingPlans.filter(
-      (plan) => plan.email !== normalizedEmail
-    );
+      if (!response.ok) {
+        throw new Error("Failed to save");
+      }
 
-    updatedPlans.push({
-      ...formData,
-      email: normalizedEmail,
-    });
+      setSuccess(true);
+      setTimeout(() => setSuccess(false), 3000);
 
-    localStorage.setItem("nutritionPlans", JSON.stringify(updatedPlans));
+      setFormData({
+        email: "",
+        goal: "",
+        breakfast: "",
+        lunch: "",
+        snacks: "",
+        dinner: "",
+        notes: "",
+      });
 
-    setSuccess(true);
-    setTimeout(() => setSuccess(false), 3000);
-
-    setFormData({
-      email: "",
-      goal: "",
-      breakfast: "",
-      lunch: "",
-      snacks: "",
-      dinner: "",
-      notes: "",
-    });
+    } catch (error) {
+      console.error("Error saving nutrition plan:", error);
+      alert("Error saving nutrition plan");
+    }
   };
 
   return (
@@ -80,7 +94,6 @@ export default function Nutrition() {
         onSubmit={handleSubmit}
         className="max-w-3xl mx-auto bg-black/60 backdrop-blur-md p-8 rounded-2xl border border-white/10 shadow-lg space-y-5"
       >
-        {/* CLIENT EMAIL */}
         <Input
           label="Client Email"
           name="email"
@@ -90,7 +103,6 @@ export default function Nutrition() {
           required
         />
 
-        {/* GOAL */}
         <Input
           label="Fitness Goal"
           name="goal"
@@ -99,7 +111,6 @@ export default function Nutrition() {
           placeholder="Weight loss / Muscle gain"
         />
 
-        {/* MEALS */}
         <Input
           label="Breakfast"
           name="breakfast"
@@ -132,7 +143,6 @@ export default function Nutrition() {
           placeholder="Grilled chicken, salad"
         />
 
-        {/* NOTES */}
         <div>
           <label className="block text-sm mb-1 text-gray-300">
             Trainer Notes
@@ -147,7 +157,6 @@ export default function Nutrition() {
           />
         </div>
 
-        {/* SUBMIT */}
         <button
           type="submit"
           className="w-full py-3 rounded-xl bg-[#39ff14] text-black font-semibold hover:opacity-90 transition"
@@ -155,7 +164,6 @@ export default function Nutrition() {
           Save Nutrition Plan
         </button>
 
-        {/* SUCCESS MESSAGE */}
         {success && (
           <p className="text-center text-green-400 text-sm">
             Nutrition plan saved successfully ✅
@@ -166,7 +174,6 @@ export default function Nutrition() {
   );
 }
 
-/* Reusable Input Component */
 function Input({ label, ...props }) {
   return (
     <div>

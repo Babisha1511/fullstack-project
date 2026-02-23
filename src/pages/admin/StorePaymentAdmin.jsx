@@ -1,4 +1,7 @@
 import { useEffect, useState } from "react";
+import { getAllPayments } from "../../api/paymentApi";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
 
 export default function StorePaymentAdmin() {
 
@@ -9,11 +12,79 @@ export default function StorePaymentAdmin() {
   /* ================= LOAD MEMBER ORDERS ================= */
 
   useEffect(() => {
-    const saved =
-      JSON.parse(localStorage.getItem("gym_admin_transactions")) || [];
-    setTransactions(saved);
-  }, []);
+  loadPayments();
+}, []);
 
+const loadPayments = async () => {
+  try {
+    const response = await getAllPayments();
+    setTransactions(response.data || []);
+  } catch (error) {
+    console.error("Failed to load payments:", error);
+  }
+};
+
+const handleExport = () => {
+  const doc = new jsPDF();
+
+  doc.setFontSize(18);
+  doc.text("Store & Payments Report", 14, 20);
+
+  const tableColumn = [
+    "Transaction ID",
+    "User",
+    "Type",
+    "Products",
+    "Mode",
+    "Status",
+    "Date",
+    "Amount",
+  ];
+
+  const tableRows = [];
+
+  transactions.forEach((t) => {
+    const rowData = [
+  t.id,
+  t.user,
+  t.type,
+  t.products.join(", "),
+  t.paymentMode,
+  t.status,
+  t.date,
+  `Rs. ${Number(t.amount).toLocaleString("en-IN")}`,
+];
+    tableRows.push(rowData);
+  });
+
+ autoTable(doc, {
+  head: [tableColumn],
+  body: tableRows,
+  startY: 30,
+
+  styles: {
+    fontSize: 8,
+    cellPadding: 3,
+  },
+
+  columnStyles: {
+    7: { 
+      halign: "right",   // Amount column aligned right
+      cellWidth: 25      // Increase width
+    },
+    3: {
+      cellWidth: 35      // Products column wider
+    }
+  },
+
+  headStyles: {
+    fillColor: [57, 255, 20],  // Neon green header
+    textColor: [0, 0, 0],
+    fontStyle: "bold"
+  }
+});
+  doc.save("Store_Payments_Report.pdf");
+};
   return (
     <div
       className="p-8 min-h-screen text-white"
@@ -37,16 +108,17 @@ export default function StorePaymentAdmin() {
           </p>
         </div>
 
-        <button
-          className="px-5 py-2 rounded-lg font-semibold transition"
-          style={{
-            backgroundColor: "#39ff14",
-            color: "black",
-            boxShadow: "0 0 20px rgba(57,255,20,0.4)",
-          }}
-        >
-          Export Report
-        </button>
+       <button
+  onClick={handleExport}
+  className="px-5 py-2 rounded-lg font-semibold transition"
+  style={{
+    backgroundColor: "#39ff14",
+    color: "black",
+    boxShadow: "0 0 20px rgba(57,255,20,0.4)",
+  }}
+>
+  Export Report
+</button>
       </div>
 
       {/* ================= STATS ================= */}
@@ -56,22 +128,24 @@ export default function StorePaymentAdmin() {
           value={transactions.length}
         />
         <Stat
-          title="Completed Payments"
-          value={transactions.filter(t => t.status === "Completed").length}
-        />
-        <Stat
-          title="Orders Placed (COD)"
-          value={transactions.filter(t => t.status === "Order Placed").length}
-        />
-        <Stat
-          title="Total Revenue"
-          value={
-            "₹" +
-            transactions
-              .filter(t => t.status === "Completed")
-              .reduce((sum, t) => sum + Number(t.amount), 0)
-          }
-        />
+  title="Completed Payments"
+  value={transactions.filter(t => t.status === "PAID").length}
+/>
+
+<Stat
+  title="Orders Placed (COD)"
+  value={transactions.filter(t => t.status === "CREATED").length}
+/>
+
+<Stat
+  title="Total Revenue"
+  value={
+    "₹" +
+    transactions
+      .filter(t => t.status === "PAID")
+      .reduce((sum, t) => sum + Number(t.amount), 0)
+  }
+/>
       </div>
 
       {/* ================= TRANSACTIONS ================= */}
@@ -147,13 +221,11 @@ function PaymentRow({
 }) {
 
   const statusStyle = {
-    Completed:
-      "bg-[#39ff14]/20 text-[#39ff14] border border-[#39ff14]/40",
-    "Order Placed":
-      "bg-blue-500/20 text-blue-400 border border-blue-400/40",
-    Pending:
-      "bg-yellow-500/20 text-yellow-400 border border-yellow-400/40",
-  };
+  PAID:
+    "bg-[#39ff14]/20 text-[#39ff14] border border-[#39ff14]/40",
+  CREATED:
+    "bg-blue-500/20 text-blue-400 border border-blue-400/40",
+};
 
   return (
     <tr className="border-t border-white/10 hover:bg-white/5 transition">

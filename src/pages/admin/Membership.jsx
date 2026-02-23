@@ -1,139 +1,90 @@
 import { useState, useEffect } from "react";
+import {
+  getMemberships,
+  createMembership,
+  deleteMembership
+} from "../../api/membershipApi";
 
 const CLIENT_KEY = "gym_clients";
-const PLAN_KEY = "gym_membership_plans";
+
 
 export default function Membership() {
-  /* ===== LOAD CLIENTS ===== */
+
+  
+  /* ===== CLIENTS STILL LOCAL (optional for now) ===== */
   const [clients, setClients] = useState(() => {
     const saved = localStorage.getItem(CLIENT_KEY);
     return saved ? JSON.parse(saved) : [];
   });
 
-  /* ===== LOAD PLANS ===== */
-  const [plans, setPlans] = useState(() => {
-    const saved = localStorage.getItem(PLAN_KEY);
-    return saved
-      ? JSON.parse(saved)
-      : [
-          {
-            name: "Basic",
-            price: 1500,
-            features: [
-              "Gym Access",
-              "Limited Equipment",
-              "No Personal Trainer",
-            ],
-          },
-          {
-            name: "Pro",
-            price: 3000,
-            features: [
-              "Full Gym Access",
-              "Group Classes",
-              "Trainer Support",
-            ],
-          },
-          {
-            name: "Elite",
-            price: 5000,
-            features: [
-              "All Pro Features",
-              "Personal Trainer",
-              "Nutrition Plan",
-            ],
-          },
-        ];
-  });
-
+  /* ===== PLANS FROM BACKEND ===== */
+  const [plans, setPlans] = useState([]);
   const [showModal, setShowModal] = useState(false);
-  const [editingPlan, setEditingPlan] = useState(null);
 
-  /* ===== SAVE TO STORAGE ===== */
-  useEffect(() => {
-    localStorage.setItem(PLAN_KEY, JSON.stringify(plans));
-  }, [plans]);
+const loadPlans = async () => {
+  try {
+    const response = await getMemberships();
+    console.log("MEMBERSHIPS FROM BACKEND:", response.data);
+    setPlans(response.data);
+  } catch (error) {
+    console.error("Error loading memberships:", error);
+  }
+};
 
-  useEffect(() => {
-    localStorage.setItem(CLIENT_KEY, JSON.stringify(clients));
-  }, [clients]);
-
-  /* ===== 🔧 AUTO FIX FOR OLD CLIENTS ===== */
-  useEffect(() => {
-    setClients((prev) =>
-      prev.map((c) => {
-        if (c.membership && !c.expiryDate) {
-          return {
-            ...c,
-            expiryDate: new Date(
-              new Date().setMonth(new Date().getMonth() + 1)
-            ).toISOString(),
-          };
-        }
-        return c;
-      })
-    );
+useEffect(() => {
+    console.log("Membership Component Mounted");
+    loadPlans();
   }, []);
 
-  /* ===== DATE HELPERS ===== */
-  const today = new Date();
-  const daysLeft = (date) =>
-    Math.ceil((new Date(date) - today) / (1000 * 60 * 60 * 24));
+useEffect(() => {
+  const refreshClients = () => {
+    const saved = localStorage.getItem(CLIENT_KEY);
+    setClients(saved ? JSON.parse(saved) : []);
+  };
+
+  refreshClients(); // load once
+
+  window.addEventListener("storage", refreshClients);
+
+  return () => {
+    window.removeEventListener("storage", refreshClients);
+  };
+}, []);
+
+  /* ===== SAVE PLAN ===== */
+  const savePlan = async (plan) => {
+    try {
+      await createMembership(plan);
+      await loadPlans();
+      setShowModal(false);
+      setEditingPlan(null);
+    } catch (error) {
+      console.error("Save failed:", error);
+    }
+  };
+
+  /* ===== DELETE PLAN ===== */
+  const removePlan = async (id) => {
+    try {
+      await deleteMembership(id);
+      await loadPlans();
+    } catch (error) {
+      console.error("Delete failed:", error);
+    }
+  };
+
 
   /* ===== STATS ===== */
-  const active = clients.filter(
-    (c) => c.expiryDate && daysLeft(c.expiryDate) > 7
-  ).length;
+ 
+const active = plans.length;
+// No expiry tracking available
+const expiring = 0;
+const expired = 0;
 
-  const expiring = clients.filter(
-    (c) =>
-      c.expiryDate &&
-      daysLeft(c.expiryDate) <= 7 &&
-      daysLeft(c.expiryDate) > 0
-  ).length;
-
-  const expired = clients.filter(
-    (c) => c.expiryDate && daysLeft(c.expiryDate) <= 0
-  ).length;
-
-  const revenue = clients.reduce((sum, c) => {
-    if (c.expiryDate && daysLeft(c.expiryDate) > 0) {
-      const plan = plans.find((p) => p.name === c.membership);
-      return sum + (plan?.price || 0);
-    }
-    return sum;
-  }, 0);
-
-  /* ===== PLAN SAVE ===== */
-  const savePlan = (plan) => {
-    if (editingPlan) {
-      setPlans(plans.map((p) => (p.name === editingPlan.name ? plan : p)));
-    } else {
-      setPlans([...plans, plan]);
-    }
-    setShowModal(false);
-    setEditingPlan(null);
-  };
-
-  const deletePlan = (name) => {
-    setPlans(plans.filter((p) => p.name !== name));
-  };
-
-  /* ===== RENEW CLIENT ===== */
-  const renewClient = (email) => {
-    setClients(
-      clients.map((c) =>
-        c.email === email
-          ? {
-              ...c,
-              expiryDate: new Date(
-                new Date().setMonth(today.getMonth() + 1)
-              ).toISOString(),
-            }
-          : c
-      )
-    );
-  };
+// Revenue = sum of plan price for all active members
+const revenue = plans.reduce((sum, plan) => {
+  return sum + (plan.price || 0);
+}, 0);
 
   return (
     <div
@@ -143,10 +94,10 @@ export default function Membership() {
           "linear-gradient(rgba(0,0,0,0.65), rgba(0,0,0,0.85)), url('https://png.pngtree.com/thumb_back/fh260/background/20230721/pngtree-contemporary-3d-render-of-a-gym-with-modern-interior-design-image_3766556.jpg')",
         backgroundSize: "cover",
         backgroundPosition: "center",
-        backgroundRepeat: "no-repeat",
         backgroundAttachment: "fixed",
       }}
     >
+
       {/* ===== HEADER ===== */}
       <div className="flex items-center justify-between mb-10">
         <div>
@@ -160,11 +111,10 @@ export default function Membership() {
 
         <button
           onClick={() => setShowModal(true)}
-          className="px-5 py-2 rounded-lg font-semibold transition"
+          className="px-5 py-2 rounded-lg font-semibold"
           style={{
             backgroundColor: "#39ff14",
             color: "black",
-            boxShadow: "0 0 20px rgba(57,255,20,0.4)",
           }}
         >
           ➕ Create Plan
@@ -182,68 +132,22 @@ export default function Membership() {
       {/* ===== MEMBERSHIP PLANS ===== */}
       <Section title="Membership Plans">
         <div className="grid md:grid-cols-3 gap-6">
-          {plans.map((p, i) => (
+          {plans.map((p) => (
             <PlanCard
-              key={i}
+              key={p.id}
               name={p.name}
               price={`₹${p.price} / month`}
               features={p.features}
               highlight={p.name === "Pro"}
-              onEdit={() => {
-                setEditingPlan(p);
-                setShowModal(true);
-              }}
-              onDelete={() => deletePlan(p.name)}
+              onDelete={() => removePlan(p.id)}
             />
           ))}
         </div>
       </Section>
 
-      {/* ===== RENEWAL TABLE ===== */}
-      <Section title="Upcoming Renewals">
-        <div className="bg-black/70 backdrop-blur-lg border border-white/10 rounded-2xl overflow-hidden">
-          <table className="w-full text-sm">
-            <thead className="bg-white/5 text-gray-400">
-              <tr>
-                <th className="text-left px-6 py-3">Client</th>
-                <th>Plan</th>
-                <th>Expiry Date</th>
-                <th>Status</th>
-                <th className="text-right px-6">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {clients.map((c, i) => {
-                if (!c.membership || !c.expiryDate) return null;
-
-                const d = daysLeft(c.expiryDate);
-                let status = "Active";
-                if (d <= 0) status = "Expired";
-                else if (d <= 7) status = "Expiring Soon";
-
-                return (
-                  <RenewalRow
-                    key={i}
-                    name={c.name}
-                    plan={c.membership}
-                    expiry={new Date(c.expiryDate).toDateString()}
-                    status={status}
-                    onRenew={() => renewClient(c.email)}
-                  />
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
-      </Section>
-
       {showModal && (
         <PlanModal
-          existing={editingPlan}
-          onClose={() => {
-            setShowModal(false);
-            setEditingPlan(null);
-          }}
+          onClose={() => setShowModal(false)}
           onSave={savePlan}
         />
       )}
@@ -255,7 +159,7 @@ export default function Membership() {
 
 function Stat({ title, value }) {
   return (
-    <div className="bg-black/60 backdrop-blur-lg border border-white/10 rounded-2xl p-6">
+    <div className="bg-black/60 border border-white/10 rounded-2xl p-6">
       <p className="text-gray-400 text-sm mb-2">{title}</p>
       <h2 className="text-3xl font-bold text-[#39ff14]">{value}</h2>
     </div>
@@ -276,7 +180,6 @@ function PlanCard({
   price,
   features,
   highlight,
-  onEdit,
   onDelete,
 }) {
   return (
@@ -288,80 +191,36 @@ function PlanCard({
       }`}
     >
       <h4 className="text-xl font-bold mb-2">{name}</h4>
+
       <p className="text-2xl font-semibold mb-4 text-[#39ff14]">
         {price}
       </p>
 
       <ul className="space-y-2 text-sm text-gray-400 mb-6">
-        {features.map((f, i) => (
+        {features?.map((f, i) => (
           <li key={i}>✔ {f}</li>
         ))}
       </ul>
 
-      <div className="flex gap-3">
-        <button
-          onClick={onEdit}
-          className="flex-1 py-2 rounded-lg bg-[#39ff14] text-black"
-        >
-          Edit
-        </button>
-        <button
-          onClick={onDelete}
-          className="flex-1 py-2 rounded-lg border border-red-400 text-red-400"
-        >
-          Delete
-        </button>
-      </div>
+      <button
+        onClick={onDelete}
+        className="w-full border border-red-400 text-red-400 py-2 rounded-lg"
+      >
+        Delete
+      </button>
     </div>
   );
 }
 
-function RenewalRow({ name, plan, expiry, status, onRenew }) {
-  const statusStyle = {
-    Active: "bg-[#39ff14]/20 text-[#39ff14]",
-    "Expiring Soon": "bg-yellow-500/20 text-yellow-400",
-    Expired: "bg-red-500/20 text-red-400",
-  };
+function PlanModal({ onClose, onSave }) {
 
-  return (
-    <tr className="border-t border-white/10 hover:bg-white/5">
-      <td className="px-6 py-4 flex items-center gap-3">
-        <img
-          src={`https://i.pravatar.cc/40?u=${name}`}
-          className="rounded-full"
-        />
-        <p className="font-medium">{name}</p>
-      </td>
-      <td className="text-center">{plan}</td>
-      <td className="text-center">{expiry}</td>
-      <td className="text-center">
-        <span className={`px-3 py-1 rounded-full text-xs ${statusStyle[status]}`}>
-          {status}
-        </span>
-      </td>
-      <td className="px-6 text-right">
-        {status !== "Active" && (
-          <button
-            onClick={onRenew}
-            className="text-gray-400 hover:text-[#39ff14]"
-          >
-            🔄 Renew
-          </button>
-        )}
-      </td>
-    </tr>
-  );
-}
-
-function PlanModal({ existing, onClose, onSave }) {
-  const [name, setName] = useState(existing?.name || "");
-  const [price, setPrice] = useState(existing?.price || "");
-  const [features, setFeatures] = useState(
-    existing?.features?.join(", ") || ""
-  );
+  const [name, setName] = useState("");
+  const [price, setPrice] = useState("");
+  const [features, setFeatures] = useState("");
 
   const submit = () => {
     if (!name || !price) return;
+
     onSave({
       name,
       price: Number(price),
@@ -372,8 +231,9 @@ function PlanModal({ existing, onClose, onSave }) {
   return (
     <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50">
       <div className="bg-black border border-white/10 rounded-xl p-6 w-full max-w-md">
+
         <h2 className="text-xl font-bold mb-4">
-          {existing ? "Edit Plan" : "Create Plan"}
+          Create Plan
         </h2>
 
         <input
@@ -382,12 +242,14 @@ function PlanModal({ existing, onClose, onSave }) {
           onChange={(e) => setName(e.target.value)}
           className="w-full mb-3 px-3 py-2 bg-black border border-white/10 rounded"
         />
+
         <input
           placeholder="Monthly Price"
           value={price}
           onChange={(e) => setPrice(e.target.value)}
           className="w-full mb-3 px-3 py-2 bg-black border border-white/10 rounded"
         />
+
         <textarea
           placeholder="Features (comma separated)"
           value={features}
@@ -399,6 +261,7 @@ function PlanModal({ existing, onClose, onSave }) {
           <button onClick={onClose} className="text-gray-400">
             Cancel
           </button>
+
           <button
             onClick={submit}
             className="px-4 py-2 rounded bg-[#39ff14] text-black font-semibold"

@@ -58,13 +58,9 @@ export default function MemberDashboard() {
       >
         {/* ================= HEADER ================= */}
         <div className="flex items-center gap-4">
-          <img
-            src="https://i.pravatar.cc/100?img=12"
-            alt="profile"
-            className="w-14 h-14 rounded-full border-2 border-[#39ff14]"
-          />
+          
           <div>
-            <h1 className="text-2xl font-bold text-white">
+            <h1 className="text-4xl font-bold text-white">
               Welcome back,{" "}
               <span className="text-[#39ff14]">
                 {userName}

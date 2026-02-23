@@ -1,83 +1,140 @@
+import { useEffect, useState } from "react";
 import jsPDF from "jspdf";
+import { getMemberships } from "../../api/membershipApi";
 
 export default function Reports() {
-  const handleDownloadCSV = () => {
-    const headers = [
-      "Month",
-      "New Members",
-      "Renewals",
-      "Revenue",
-      "Trainer Sessions",
-    ];
 
-    const data = [
-      ["September", 120, 86, "₹4.1L", 780],
-      ["October", 154, 112, "₹4.6L", 840],
-      ["November", 132, 94, "₹4.3L", 810],
-    ];
+  /* ================= STATE ================= */
+  const [plans, setPlans] = useState([]);
+  const [clients, setClients] = useState([]);
+
+  /* ================= LOAD DATA ================= */
+  useEffect(() => {
+    loadData();
+  }, []);
+
+  // Auto refresh when membership page dispatches event
+  useEffect(() => {
+    const handler = () => loadData();
+    window.addEventListener("membershipUpdated", handler);
+    return () => window.removeEventListener("membershipUpdated", handler);
+  }, []);
+
+  const loadData = async () => {
+    try {
+      // Load membership plans from backend
+      const response = await getMemberships();
+      setPlans(response.data);
+
+      // Load clients from Client Management (localStorage)
+      const storedClients =
+        JSON.parse(localStorage.getItem("gym_clients")) || [];
+
+      setClients(storedClients);
+
+    } catch (error) {
+      console.error("Failed to load report data:", error);
+    }
+  };
+
+  /* ================= CALCULATIONS ================= */
+
+  // 🔥 Total Members (from Client Management)
+  const totalMembers = clients.length;
+
+  // 🔥 Total Revenue (based on client subscriptions)
+  const totalRevenue = clients.reduce((sum, client) => {
+    const plan = plans.find(
+      (p) => p.name === client.membership
+    );
+    return sum + (plan?.price || 0);
+  }, 0);
+
+  // 🔥 Distribution per plan
+  const planDistribution = plans.map((plan) => {
+
+    const count = clients.filter(
+      (c) => c.membership === plan.name
+    ).length;
+
+    return {
+      label: plan.name,
+      value: totalMembers
+        ? `${count} Members`
+        : "0 Members"
+    };
+  });
+
+  /* ================= CSV EXPORT ================= */
+  const handleDownloadCSV = () => {
+
+    const headers = ["Plan", "Members", "Revenue"];
+
+    const data = plans.map((plan) => {
+      const count = clients.filter(
+        (c) => c.membership === plan.name
+      ).length;
+
+      return [
+        plan.name,
+        count,
+        count * plan.price
+      ];
+    });
 
     const csvRows = [
       headers.join(","),
-      ...data.map((row) => row.join(",")),
+      ...data.map((row) => row.join(","))
     ];
 
-    const csvContent = csvRows.join("\n");
-
-    const blob = new Blob([csvContent], {
+    const blob = new Blob([csvRows.join("\n")], {
       type: "text/csv;charset=utf-8;",
     });
 
     const url = URL.createObjectURL(blob);
-
     const link = document.createElement("a");
     link.href = url;
     link.download = "gym-reports.csv";
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-
-    URL.revokeObjectURL(url);
   };
 
-  /* ===== PDF EXPORT HANDLER ===== */
+  /* ================= PDF EXPORT ================= */
   const handleExportPDF = () => {
-    const doc = new jsPDF();
 
-    doc.setFontSize(18);
-    doc.text("Reports & Analytics", 14, 20);
+  const doc = new jsPDF();
 
-    doc.setFontSize(12);
-    doc.text("Monthly Performance Report", 14, 30);
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(18);
+  doc.text("Reports & Analytics", 20, 20);
 
-    const rows = [
-      ["September", "120", "86", "₹4.1L", "780"],
-      ["October", "154", "112", "₹4.6L", "840"],
-      ["November", "132", "94", "₹4.3L", "810"],
-    ];
+  doc.setFontSize(12);
+  doc.text("Membership Performance Report", 20, 30);
 
-    let y = 40;
+  let y = 45;
 
-    doc.setFontSize(10);
-    doc.text("Month", 14, y);
-    doc.text("New Members", 45, y);
-    doc.text("Renewals", 85, y);
-    doc.text("Revenue", 115, y);
-    doc.text("Sessions", 155, y);
+  plans.forEach((plan) => {
+    doc.text(
+      `${plan.name}  -  Price: Rs. ${plan.price}`,
+      20,
+      y
+    );
+    y += 10;
+  });
 
-    y += 8;
+  // Add total revenue at bottom
+  const totalRevenue = plans.reduce(
+    (sum, plan) => sum + (plan.price || 0),
+    0
+  );
 
-    rows.forEach((r) => {
-      doc.text(r[0], 14, y);
-      doc.text(r[1], 55, y);
-      doc.text(r[2], 95, y);
-      doc.text(r[3], 115, y);
-      doc.text(r[4], 160, y);
-      y += 7;
-    });
+  y += 10;
+  doc.setFontSize(14);
+  doc.text(`Total Revenue: Rs. ${totalRevenue}`, 20, y);
 
-    doc.save("gym-reports.pdf");
-  };
-
+  doc.save("gym-reports.pdf");
+};
   return (
     <div
       className="p-8 min-h-screen text-white"
@@ -90,6 +147,7 @@ export default function Reports() {
         backgroundAttachment: "fixed",
       }}
     >
+
       {/* ===== HEADER ===== */}
       <div className="flex items-center justify-between mb-10">
         <div>
@@ -125,79 +183,28 @@ export default function Reports() {
 
       {/* ===== KPI STATS ===== */}
       <div className="grid md:grid-cols-4 gap-6 mb-12">
-        <Stat title="Total Revenue" value="₹28.4L" />
-        <Stat title="Monthly Growth" value="+12.6%" />
-        <Stat title="Active Members" value="1,091" />
-        <Stat title="Trainer Utilization" value="87%" />
+        <Stat title="Total Revenue" value={`₹${totalRevenue}`} />
+        <Stat title="Total Members" value={totalMembers} />
+        <Stat title="Total Plans" value={plans.length} />
+        <Stat
+          title="Avg Revenue / Member"
+          value={
+            totalMembers
+              ? `₹${Math.round(totalRevenue / totalMembers)}`
+              : "₹0"
+          }
+        />
       </div>
 
-      {/* ===== REPORT SECTIONS ===== */}
+      {/* ===== DISTRIBUTION ===== */}
       <div className="grid lg:grid-cols-2 gap-10 mb-12">
         <ReportCard
           title="Membership Distribution"
           description="Breakdown of active memberships by plan"
-          rows={[
-            { label: "Basic", value: "42%" },
-            { label: "Pro", value: "38%" },
-            { label: "Elite", value: "20%" },
-          ]}
-        />
-
-        <ReportCard
-          title="Revenue Summary"
-          description="Monthly revenue sources"
-          rows={[
-            { label: "Memberships", value: "₹18.6L" },
-            { label: "Personal Training", value: "₹6.4L" },
-            { label: "Store Sales", value: "₹3.4L" },
-          ]}
+          rows={planDistribution}
         />
       </div>
 
-      {/* ===== DETAILED TABLE ===== */}
-      <div className="bg-black/70 backdrop-blur-lg border border-white/10 rounded-2xl overflow-hidden">
-        <div className="px-6 py-4 border-b border-white/10">
-          <h3 className="font-semibold tracking-wide">
-            Monthly Performance Report
-          </h3>
-        </div>
-
-        <table className="w-full text-sm">
-          <thead className="bg-white/5 text-gray-400">
-            <tr>
-              <th className="text-left px-6 py-3">Month</th>
-              <th>New Members</th>
-              <th>Renewals</th>
-              <th>Revenue</th>
-              <th>Trainer Sessions</th>
-            </tr>
-          </thead>
-
-          <tbody>
-            <ReportRow
-              month="September"
-              newMembers="120"
-              renewals="86"
-              revenue="₹4.1L"
-              sessions="780"
-            />
-            <ReportRow
-              month="October"
-              newMembers="154"
-              renewals="112"
-              revenue="₹4.6L"
-              sessions="840"
-            />
-            <ReportRow
-              month="November"
-              newMembers="132"
-              renewals="94"
-              revenue="₹4.3L"
-              sessions="810"
-            />
-          </tbody>
-        </table>
-      </div>
     </div>
   );
 }
@@ -234,19 +241,4 @@ function ReportCard({ title, description, rows }) {
       </div>
     </div>
   );
-}
-
-function ReportRow({ month, newMembers, renewals, revenue, sessions }) {
-  return (
-    <tr className="border-t border-white/10 hover:bg-white/5">
-      <td className="px-6 py-4 font-medium">{month}</td>
-      <td className="text-center">{newMembers}</td>
-      <td className="text-center">{renewals}</td>
-      <td className="text-center font-semibold text-[#39ff14]">
-        {revenue}
-      </td>
-      <td className="text-center">{sessions}</td>
-    </tr>
-  );
-}
-
+} 
